@@ -9,7 +9,11 @@
 ;; Structures needed for runtime code generation of a parser
 
 (struct generic-mutable-message (singular-fields repeated-fields) #:transparent)
-(struct message-descriptor (fields constructor) #:transparent)
+;; messages: (hash/c string? message-descriptor?)
+(struct descriptor-set (messages) #:transparent)
+;; fields: (hash/c exact-positive-integer? field-descriptor)
+(struct message-descriptor ([fields #:mutable] constructor) #:transparent)
+;; type: string?
 (struct field-descriptor (multiplicity type) #:transparent)
 
 (define (primitive-type? x)
@@ -33,7 +37,7 @@
         [(equal? 'optional multiplicity)
          (cond
            [(primitive-type? type)
-            (generic-mutable-message-set-singular-field! v field-number (read-proto-primitive type))]
+            (generic-mutable-message-set-singular-field! v field-number (read-proto-primitive port type))]
            [else
              (define inner
                (generic-mutable-message-get-singular-field! v field-number
@@ -43,12 +47,13 @@
          (generic-mutable-message-add-repeated-field! v field-number
            (cond
              [(primitive-type? type)
-              (read-proto-primitive type)]
+              (read-proto-primitive port type)]
              [else
                (define inner ((message-descriptor-constructor type)))
                (fill-in-proto type inner (make-limited-input-port port (read-proto-varint port)))]))]
         [else (error 'parse-proto "Fell through")])])
-    (fill-in-proto md v port)))
+    (fill-in-proto md v port))
+  v)
 
 
       
