@@ -15,7 +15,7 @@
 ;; A protocol message has the following things at runtime
 ;; Field accessors
 
-;; Constructor 
+;; Constructor
 
 (struct message-identifiers (constructor fields parser serializer) #:transparent)
 (struct singular-field-identifiers (accessor mutator) #:transparent)
@@ -40,23 +40,45 @@
   (define/with-syntax constructor (message-identifiers-constructor ids))
   (define/with-syntax (type-descriptor raw-constructor predicate accessor mutator)
     (generate-temporaries '(type-descriptor raw-constructor predicate accessor mutator)))
+
+  (define indices
+    (for/hash ([field-index (in-naturals)]
+               [(field-number field-ids) (message-identifiers-fields ids)])
+      (values field-number field-index)))
+  (define reverse-indices
+    (for/hash ([(k v) (in-hash indices)])
+      (values v k)))
+
+
   (define num-fields (hash-count fields))
   #`(begin
       (define-values (type-descriptor raw-constructor predicate accessor mutator)
         (make-struct-type '#,(string->symbol name) #f #,num-fields 0 #f empty #f))
       (define (constructor)
-        (raw-constructor #,@(build-list num-fields (λ (i) #f))))
+        (raw-constructor
+          #,@(for/list ([i num-fields])
+               (case (field-descriptor-multiplicity (hash-ref fields (hash-ref reverse-indices i)))
+                 [(optional) #'#f]
+                 [(repeated) #'null]))))
+      ;; Make deterministic
       #,@(for/list ([(field-number field-ids) (message-identifiers-fields ids)])
+           (define field-index (hash-ref indices field-number))
            (match field-ids
              [(singular-field-identifiers acc mut)
               #`(begin
-                  (define (#,acc arg) #f)
-                  (define (#,mut arg new) (void)))]
+                  (define #,acc
+                    (make-struct-field-accessor accessor #,field-index))
+                  (define #,mut
+                    (make-struct-field-mutator mutator #,field-index)))]
              [(repeated-field-identifiers acc adder)
+              (define mut (generate-temporary 'mut))
               #`(begin
-                  (define (#,acc arg) #f)
-                  (define (#,adder arg new) (void)))]))))
-
+                  (define #,acc
+                    (make-struct-field-accessor accessor #,field-index))
+                  (define #,mut
+                    (make-struct-field-mutator mutator #,field-index))
+                  (define (#,adder arg new)
+                    (#,mut arg (cons new (#,acc arg)))))]))))
 
 (define (generate-parser message-ids desc)
   (define name  (message-descriptor-name desc))
@@ -65,7 +87,6 @@
   (define field-clauses
     (for/list ([(field-number fd) (message-descriptor-fields desc)])
       (match-define (field-descriptor multiplicity type) fd)
-                    
       #`[(#,field-number)
          (unless (equal? wire-type '#,(type->expected-wire-type type))
            (error 'parse-proto "Bad wire type"))
@@ -85,7 +106,6 @@
                [(int32) #`(mutator current-proto (read-proto-varint port))]
                ;; TODO make this work
                [(boolean) #`(error 'nyi)]
-                
                [else
                  (define sub-ids (hash-ref message-ids type))
                  (define/with-syntax sub-constructor
@@ -97,7 +117,8 @@
                        (let ([old-value (accessor current-proto)])
                          (or old-value
                              (let ([new-value (sub-constructor)])
-                               (mutator current-proto new-value)))))
+                               (mutator current-proto new-value)
+                               new-value))))
                      (define len (read-proto-varint port))
                      (sub-parser
                        (make-limited-input-port port len)
@@ -122,7 +143,7 @@
                        (define/with-syntax sub-parser
                          (message-identifiers-parser sub-ids))
                        #'(let ([len (read-proto-varint port)])
-                           (sub-parser 
+                           (sub-parser
                              (make-limited-input-port port len)
                              (sub-constructor)))]))])]))
 
@@ -134,7 +155,7 @@
           (define-values (field-number wire-type) (extract-wire-key varint))
           (case field-number
             #,@field-clauses
-            [else 
+            [else
               ;; Read through the unknown field
               (case wire-type
                 [(varint) (read-proto-varint port)]
