@@ -107,7 +107,14 @@
       (values name
         (message-descriptor 
           name
-          (hash))))))
+          (for/hash ([(field-number field) fields])
+            (values
+              field-number
+              (field-descriptor
+                (first field)
+                (if (equal? 'message (second field))
+                    (third field)
+                    (second field))))))))))
 
 
 (define-syntax (go stx)
@@ -116,7 +123,14 @@
       (values name
         (message-identifiers
           (format-id stx "~a" name)
-          empty
+          (for/hash ([(field-number field) fields])
+            (values
+              field-number
+              ((if (equal? 'optional (first field))
+                   singular-field-identifiers
+                   repeated-field-identifiers)
+                (format-id stx "~a-~a" name field-number)
+                (format-id stx "set-~a-~a!" name field-number))))
           (format-id stx "~a-parser" name)
           (format-id stx "~a-writer" name)))))
 
@@ -128,7 +142,7 @@
 
 (go)
 
-(FileDescriptorSet)
+(FileDescriptorSet-parser proto-port (FileDescriptorSet))
 
 ;(for ([(name fields) (in-hash descriptors)])
 ;  (set-message-descriptor-fields!

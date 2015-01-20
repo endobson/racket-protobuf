@@ -3,6 +3,7 @@
 (require
   (for-template
     racket/base
+    racket/port
     racket/list
     "proto-reader.rkt")
 
@@ -16,9 +17,9 @@
 
 ;; Constructor 
 
-(struct message-identifiers (constructor fields parser serializer))
-(struct singular-field-identifiers (accessor mutator))
-(struct repeated-field-identifiers (accessor adder))
+(struct message-identifiers (constructor fields parser serializer) #:transparent)
+(struct singular-field-identifiers (accessor mutator) #:transparent)
+(struct repeated-field-identifiers (accessor adder) #:transparent)
 
 ;; fields: (hash/c exact-positive-integer? field-descriptor)
 (struct message-descriptor (name fields) #:transparent)
@@ -30,22 +31,36 @@
   (match type
     [(or 'string 'bytes (? string?))
      'length-delimited]
-    ['int32
+    [(or 'int32 'boolean)
      'varint]))
 
 (define (generate-structure message-ids desc)
   (match-define (message-descriptor name fields) desc)
   (define ids (hash-ref message-ids name))
   (define/with-syntax constructor (message-identifiers-constructor ids))
-  (define/with-syntax (type-descriptor predicate accessor mutator)
-    (generate-temporaries '(type-descriptor predicate accessor mutator)))
+  (define/with-syntax (type-descriptor raw-constructor predicate accessor mutator)
+    (generate-temporaries '(type-descriptor raw-constructor predicate accessor mutator)))
+  (define num-fields (hash-count fields))
   #`(begin
-      (define-values (type-descriptor constructor predicate accessor mutator)
-        (make-struct-type '#,(string->symbol name) #f #,(hash-count fields) 0 #f empty #f))))
+      (define-values (type-descriptor raw-constructor predicate accessor mutator)
+        (make-struct-type '#,(string->symbol name) #f #,num-fields 0 #f empty #f))
+      (define (constructor)
+        (raw-constructor #,@(build-list num-fields (λ (i) #f))))
+      #,@(for/list ([(field-number field-ids) (message-identifiers-fields ids)])
+           (match field-ids
+             [(singular-field-identifiers acc mut)
+              #`(begin
+                  (define (#,acc arg) #f)
+                  (define (#,mut arg new) (void)))]
+             [(repeated-field-identifiers acc adder)
+              #`(begin
+                  (define (#,acc arg) #f)
+                  (define (#,adder arg new) (void)))]))))
 
 
 (define (generate-parser message-ids desc)
-  (define ids (hash-ref message-ids (message-descriptor-name desc)))
+  (define name  (message-descriptor-name desc))
+  (define ids (hash-ref message-ids name))
   (define parser (message-identifiers-parser ids))
   (define field-clauses
     (for/list ([(field-number fd) (message-descriptor-fields desc)])
@@ -57,33 +72,39 @@
          #,(case multiplicity
              [(optional)
               (match-define (singular-field-identifiers accessor* mutator*)
-                (message-identifiers-fields ids))
+                (hash-ref (message-identifiers-fields ids) field-number))
               (define/with-syntax accessor accessor*)
               (define/with-syntax mutator mutator*)
               (case type
-               [(string) #`(mutator current-proto
-                            (read-proto-string port (read-proto-varint port)))]
+               [(string)
+                #`(let ([amount (read-proto-varint port)])
+                    (mutator current-proto (read-proto-string port amount)))]
                [(bytes) #`(mutator current-proto
                            (read-proto-bytes port (read-proto-varint port)))]
                ;; TODO make this cap in 32 bit range
                [(int32) #`(mutator current-proto (read-proto-varint port))]
+               ;; TODO make this work
+               [(boolean) #`(error 'nyi)]
+                
                [else
                  (define sub-ids (hash-ref message-ids type))
                  (define/with-syntax sub-constructor
                    (message-identifiers-constructor sub-ids))
                  (define/with-syntax sub-parser
                    (message-identifiers-parser sub-ids))
-                 ;; read length off of wire
                  #'(let ()
                      (define sub-message
                        (let ([old-value (accessor current-proto)])
                          (or old-value
                              (let ([new-value (sub-constructor)])
                                (mutator current-proto new-value)))))
-                     (sub-parser port sub-message))])]
+                     (define len (read-proto-varint port))
+                     (sub-parser
+                       (make-limited-input-port port len)
+                       sub-message))])]
              [(repeated)
               (match-define (repeated-field-identifiers accessor* adder*)
-                (message-identifiers-fields ids))
+                (hash-ref (message-identifiers-fields ids) field-number))
               (define/with-syntax accessor accessor*)
               (define/with-syntax adder adder*)
               #`(adder current-proto
@@ -92,22 +113,36 @@
                      [(bytes) #'(read-proto-bytes port (read-proto-varint port))]
                      ;; TODO make this cap in 32 bit range
                      [(int32) #'(read-proto-varint port)]
+                     ;; TODO make this work
+                     [(boolean) #`(error 'nyi)]
                      [else
                        (define sub-ids (hash-ref message-ids type))
                        (define/with-syntax sub-constructor
                          (message-identifiers-constructor sub-ids))
                        (define/with-syntax sub-parser
                          (message-identifiers-parser sub-ids))
-                       ;; read length off of wire
-                       #'(sub-parser port (sub-constructor))]))])]))
+                       #'(let ([len (read-proto-varint port)])
+                           (sub-parser 
+                             (make-limited-input-port port len)
+                             (sub-constructor)))]))])]))
 
 
   #`(define (#,parser port current-proto)
-      (define varint (read-proto-varint port #t))
-      (define-values (field-number wire-type) (extract-wire-key varint))
-      (unless (eof-object? varint)
-        (case field-number
-          #,@field-clauses))
+      (let loop ()
+        (define varint (read-proto-varint port #t))
+        (unless (eof-object? varint)
+          (define-values (field-number wire-type) (extract-wire-key varint))
+          (case field-number
+            #,@field-clauses
+            [else 
+              ;; Read through the unknown field
+              (case wire-type
+                [(varint) (read-proto-varint port)]
+                [(length-delimited)
+                 (define len (read-proto-varint port))
+                 (read-proto-bytes port len)]
+                [else (error 'nyi)])])
+          (loop)))
       current-proto))
 
 

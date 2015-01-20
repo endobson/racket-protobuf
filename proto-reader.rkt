@@ -34,7 +34,7 @@
 (define (read-proto-bytes port length)
   (define bytes (read-bytes length port))
   (unless (equal? (bytes-length bytes) length)
-    (error 'parse-proto "Bytestream ended in the middle of a string field"))
+    (error 'parse-proto "Bytestream ended in the middle of a bytes field"))
   bytes)
 
 
