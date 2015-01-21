@@ -23,8 +23,9 @@
 
 ;; fields: (hash/c exact-positive-integer? field-descriptor)
 (struct message-descriptor (name fields) #:transparent)
-;; type: string?
-(struct field-descriptor (multiplicity type) #:transparent)
+;; type: (or/c 'int32 'string 'bytes 'boolean string?)
+;; name: string?
+(struct field-descriptor (multiplicity type name) #:transparent)
 
 
 (define (type->expected-wire-type type)
@@ -86,7 +87,7 @@
   (define parser (message-identifiers-parser ids))
   (define field-clauses
     (for/list ([(field-number fd) (message-descriptor-fields desc)])
-      (match-define (field-descriptor multiplicity type) fd)
+      (match-define (field-descriptor multiplicity type _) fd)
       #`[(#,field-number)
          (unless (equal? wire-type '#,(type->expected-wire-type type))
            (error 'parse-proto "Bad wire type"))

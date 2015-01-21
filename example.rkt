@@ -53,8 +53,9 @@
               (?@ field-number
                   (field-descriptor
                     'field-multiplicity
-                    'field-type)) ...)))]))
-  (define mds2
+                    'field-type
+                    'field-name)) ...)))]))
+  (define md-list
     (list
       (message "FileDescriptorSet"
         [repeated "FileDescriptorProto" file = 1])
@@ -103,113 +104,11 @@
         #;
         [optional "Type" type = 5]
         [optional string type_name = 6]
-        [optional int32 oneof_index = 9])
+        [optional int32 oneof_index = 9])))
 
-      
-      ))
-  (define mds3
-    (for/hash ([md (in-list mds2)])
-      (values (message-descriptor-name md) md)))
-
-  (define descriptors
-    (hash
-      "FileDescriptorSet"
-      (hash
-        1 '(repeated message "FileDescriptorProto"))
-      "FileDescriptorProto"
-      (hash
-        1 '(optional string)
-        2 '(optional string)
-        3 '(repeated string)
-        10 '(repeated int32)
-        11 '(repeated int32)
-        4 '(repeated message "DescriptorProto")
-        5 '(repeated message "EnumDescriptorProto")
-        6 '(repeated message "ServiceDescriptorProto")
-        7 '(repeated message "FieldDescriptorProto")
-        8 '(optional message "FileOptions")
-        9 '(optional message "SourceCodeInfo"))
-      "DescriptorProto"
-      (hash
-        1 '(optional string)
-        2 '(optional message "FieldDescriptorProto")
-        6 '(optional message "FieldDescriptorProto")
-        3 '(optional message "DescriptorProto")
-        4 '(optional message "EnumDescriptorProto")
-        5 '(optional message "ExtensionRange")
-        8 '(optional message "OneofDescriptorProto")
-        7 '(optional message "MessageOptions"))
-      "EnumDescriptorProto"
-      (hash
-        1 '(optional string)
-        2 '(repeated message "EnumValueDescriptorProto")
-        3 '(optional message "EnumOptions"))
-      "EnumValueDescriptorProto"
-      (hash
-        1 '(optional string)
-        2 '(optional int32)
-        3 '(optional message "EnumValueOptions"))
-      "EnumOptions"
-      (hash
-        2 '(optional boolean)
-        3 '(optional boolean))
-      "EnumValueOptions"
-      (hash
-        1 '(optional boolean))
-  
-  
-      "ServiceDescriptorProto"
-      (hash
-        1 '(optional string)
-        2 '(repeated message "MethodDescriptorProto")
-        3 '(optional message "ServiceOptions"))
-  
-      "FieldDescriptorProto"
-      (hash
-        1 '(optional string)
-        3 '(optional int32)
-        ;4 TODO
-        ;5 TODO
-        6 '(optional string)
-        2 '(optional string)
-        7 '(optional string)
-        9 '(optional int32)
-        8 '(optional message "FieldOptions"))
-  
-      "FileOptions"
-      (hash) ;TODO
-      "SourceCodeInfo"
-      (hash) ;TODO
-      "ExtensionRange"
-      (hash) ;TODO
-      "OneofDescriptorProto"
-      (hash) ;TODO
-      "MessageOptions"
-      (hash) ;TODO
-      "MethodDescriptorProto"
-      (hash) ;TODO
-      "ServiceOptions"
-      (hash) ;TODO
-      "FieldOptions"
-      (hash) ;TODO
-  
-      ))
-
-
-  (define mds4
-    (for/hash ([(name fields) (in-hash descriptors)])
-      (values name
-        (message-descriptor 
-          name
-          (for/hash ([(field-number field) fields])
-            (values
-              field-number
-              (field-descriptor
-                (first field)
-                (if (equal? 'message (second field))
-                    (third field)
-                    (second field)))))))))
-  (define mds mds3))
+  (define mds
+    (for/hash ([md (in-list md-list)])
+      (values (message-descriptor-name md) md))))
 
 
 (define-syntax (go stx)
@@ -219,16 +118,16 @@
         (message-identifiers
           (format-id stx "~a" name)
           (for/hash ([(field-number fd) (message-descriptor-fields md)])
-            (match-define (field-descriptor multiplicity type) fd)
+            (match-define (field-descriptor multiplicity type field-name) fd)
             (values
               field-number
               ((if (equal? 'optional multiplicity)
                    singular-field-identifiers
                    repeated-field-identifiers)
-                (format-id stx "~a-~a" name field-number)
-                (format-id stx "set-~a-~a!" name field-number))))
-          (format-id stx "~a-parser" name)
-          (format-id stx "~a-writer" name)))))
+                (format-id stx "~a-~a" name field-name)
+                (format-id stx "set-~a-~a!" name field-name))))
+          (format-id stx "parse-~a" name)
+          (format-id stx "write-~a" name)))))
 
   #`(begin
       #,@(for/list ([(name md) mds])
@@ -239,9 +138,9 @@
 (go)
 
 (pretty-print
-  (FileDescriptorSet-parser proto-port (FileDescriptorSet)))
+  (parse-FileDescriptorSet proto-port (FileDescriptorSet)))
 (pretty-print
-  (FileDescriptorSet-parser proto-port2 (FileDescriptorSet)))
+  (parse-FileDescriptorSet proto-port2 (FileDescriptorSet)))
 
 
 
