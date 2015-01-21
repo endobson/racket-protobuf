@@ -12,6 +12,8 @@
       syntax/parse
       syntax/parse/experimental/template
       racket/base)
+    "message-identifiers.rkt"
+    "message-descriptor.rkt"
     "code-generation.rkt")
   "proto-reader.rkt"
   racket/pretty

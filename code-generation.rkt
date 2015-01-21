@@ -7,6 +7,8 @@
     racket/list
     "proto-reader.rkt")
 
+  "message-identifiers.rkt"
+  "message-descriptor.rkt"
   racket/match
   racket/syntax)
 
@@ -17,15 +19,7 @@
 
 ;; Constructor
 
-(struct message-identifiers (constructor fields parser serializer) #:transparent)
-(struct singular-field-identifiers (accessor mutator) #:transparent)
-(struct repeated-field-identifiers (accessor adder) #:transparent)
 
-;; fields: (hash/c exact-positive-integer? field-descriptor)
-(struct message-descriptor (name fields) #:transparent)
-;; type: (or/c 'int32 'string 'bytes 'boolean string?)
-;; name: string?
-(struct field-descriptor (multiplicity type name) #:transparent)
 
 
 (define (type->expected-wire-type type)
