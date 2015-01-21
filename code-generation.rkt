@@ -75,6 +75,38 @@
                   (define (#,adder arg new)
                     (#,mut arg (cons new (#,acc arg)))))]))))
 
+;; TODO make this do CamelCase and snake_case to hypen-case.
+(define (message-descriptor->message-identifiers ctx md)
+  (define name (message-descriptor-name md))
+  (message-identifiers
+    (format-id ctx "~a" name)
+    (for/hash ([(field-number fd) (message-descriptor-fields md)])
+      (match-define (field-descriptor multiplicity type field-name) fd)
+      (values
+        field-number
+        ((if (equal? 'optional multiplicity)
+             singular-field-identifiers
+             repeated-field-identifiers)
+          (format-id ctx "~a-~a" name field-name)
+          (format-id ctx "set-~a-~a!" name field-name))))
+    (format-id ctx "parse-~a" name)
+    (format-id ctx "write-~a" name)))
+
+
+(define (generate-code ctx mds)
+  (define mids
+    (for/hash ([md (in-list mds)])
+      (values
+        (message-descriptor-name md)
+        (message-descriptor->message-identifiers ctx md))))
+
+  #`(begin
+      #,@(for/list ([md (in-list mds)])
+           #`(begin
+               #,(generate-structure mids md)
+               #,(generate-parser mids md)))))
+
+
 (define (generate-parser message-ids desc)
   (define name  (message-descriptor-name desc))
   (define ids (hash-ref message-ids name))
@@ -160,7 +192,3 @@
                 [else (error 'nyi)])])
           (loop)))
       current-proto))
-
-
-
-
