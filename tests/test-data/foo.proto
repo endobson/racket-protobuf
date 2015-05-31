@@ -1,6 +1,11 @@
 package com.endobson;
 
-message Foo {
+message Bar {
   optional int32 v = 1;
+  repeated Baz baz = 2;
+}
 
+
+message Baz {
+  optional Bar bar = 1;
 }
