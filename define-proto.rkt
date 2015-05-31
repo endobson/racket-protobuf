@@ -28,6 +28,7 @@
           (syntax-e (attribute multiplicity))
           (syntax-e (attribute type))
           (syntax-e (attribute name)))])
+
   (define-syntax-class message-spec
     #:attributes (descriptor)
     [pattern ((~datum message) name:str fields:field-spec ...)

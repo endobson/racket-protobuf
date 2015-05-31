@@ -1,7 +1,6 @@
 #lang racket/base
 (require
   racket/port
-  openssl/sha1
   racket/match
   racket/list)
 
@@ -36,7 +35,6 @@
   (unless (equal? (bytes-length bytes) length)
     (error 'parse-proto "Bytestream ended in the middle of a bytes field"))
   bytes)
-
 
 
 (define (extract-wire-key value)

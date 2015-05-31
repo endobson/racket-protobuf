@@ -12,12 +12,29 @@
   racket/match
   racket/syntax)
 
-(provide (all-defined-out))
+(provide generate-code)
 
 ;; A protocol message has the following things at runtime
 ;; Field accessors
 
 ;; Constructor
+
+
+;; This generates the code given a list of messages.
+;; ctx: syntax? The lexical context for generated identifiers.
+;; mds: (listof message-descriptor?) The messages to generate code for.
+(define (generate-code ctx mds)
+  (define mids
+    (for/hash ([md (in-list mds)])
+      (values
+        (message-descriptor-name md)
+        (message-descriptor->message-identifiers ctx md))))
+
+  #`(begin
+      #,@(for/list ([md (in-list mds)])
+           #`(begin
+               #,(generate-structure mids md)
+               #,(generate-parser mids md)))))
 
 
 
@@ -36,10 +53,13 @@
   (define/with-syntax (type-descriptor raw-constructor predicate accessor mutator)
     (generate-temporaries '(type-descriptor raw-constructor predicate accessor mutator)))
 
+  ;; Hash of field-number to index of the field in the struct.
   (define indices
     (for/hash ([field-index (in-naturals)]
                [(field-number field-ids) (message-identifiers-fields ids)])
       (values field-number field-index)))
+
+  ;; Hash of index of the field in the struct to field number.
   (define reverse-indices
     (for/hash ([(k v) (in-hash indices)])
       (values v k)))
@@ -93,18 +113,6 @@
     (format-id ctx "write-~a" name)))
 
 
-(define (generate-code ctx mds)
-  (define mids
-    (for/hash ([md (in-list mds)])
-      (values
-        (message-descriptor-name md)
-        (message-descriptor->message-identifiers ctx md))))
-
-  #`(begin
-      #,@(for/list ([md (in-list mds)])
-           #`(begin
-               #,(generate-structure mids md)
-               #,(generate-parser mids md)))))
 
 
 (define (generate-parser message-ids desc)
