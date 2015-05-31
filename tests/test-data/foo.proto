@@ -1,0 +1,6 @@
+package com.endobson;
+
+message Foo {
+  optional int32 v = 1;
+
+}

@@ -4,11 +4,14 @@
   "proto-reader.rkt"
   "define-proto.rkt"
   racket/pretty
-  racket/port)
+  racket/port
+  racket/runtime-path)
 
+(define-runtime-path tmp-pb-path "tests/test-data/tmp.pb")
+(define-runtime-path descriptor-pb-path "tests/test-data/descriptor.pb")
 
-(define pb (call-with-input-file* (expand-user-path "~/tmp/tmp.pb") port->bytes))
-(define pb2 (call-with-input-file* (expand-user-path "~/tmp/descriptor.pb") port->bytes))
+(define pb (call-with-input-file* tmp-pb-path port->bytes))
+(define pb2 (call-with-input-file* descriptor-pb-path port->bytes))
 
 (define proto-port (open-input-bytes pb))
 (define proto-port2 (open-input-bytes pb2))
