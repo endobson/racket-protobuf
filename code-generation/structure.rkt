@@ -90,8 +90,9 @@
       (define (constructor)
         (raw-constructor
           #,@(for/list ([i num-fields])
-               (case (field-descriptor-multiplicity (hash-ref fields (hash-ref reverse-indices i)))
-                 [(optional) #'#f]
+               (define fd (hash-ref fields (hash-ref reverse-indices i)))
+               (case (field-descriptor-multiplicity fd)
+                 [(optional) (default-value (field-descriptor-type fd))]
                  [(repeated) #'null]))))
 
       ;; TODO(endobson) Make deterministic
@@ -117,3 +118,12 @@
                   #;
                   (define (#,adder arg new)
                     (#,mut arg (cons new (#,acc arg)))))]))))
+
+;; The default value for a given proto buf type.
+(define (default-value type)
+  (match type
+    ['int32 0]
+    ['string ""]
+    ['bytes #""]
+    ['boolean #f]
+    [(? string?) #f]))

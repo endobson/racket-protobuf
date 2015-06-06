@@ -69,6 +69,11 @@
       (check-not-exn (lambda ()
         (call-with-input-file* tmp-pb-path
           (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet))))))
+      (check-not-exn (lambda ()
+        (call-with-input-file* descriptor-pb-path
+          (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet)))))))
+    (test-suite "Builders"
+
 
       (check-equal?
         (FileDescriptorSet-builder)
@@ -80,10 +85,11 @@
 
       (test-begin
         (define b (FileDescriptorProto-builder))
-        (check-equal? (FileDescriptorProto-builder-name b) #f))
+        (check-equal? (FileDescriptorProto-builder-name b) ""))
+
+      (test-begin
+        (define b (FieldDescriptorProto-builder))
+        (check-equal? (FieldDescriptorProto-builder-number b) 0)))))
 
 
-      (check-not-exn (lambda ()
-        (call-with-input-file* descriptor-pb-path
-          (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet)))))))))
 
