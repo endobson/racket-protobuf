@@ -44,7 +44,7 @@
                (case (field-descriptor-multiplicity (hash-ref fields (hash-ref reverse-indices i)))
                  [(optional) #'#f]
                  [(repeated) #'null]))))
-      ;; Make deterministic
+      ;; TODO(endobson) Make deterministic
       #,@(for/list ([(field-number field-ids) (message-identifiers-fields ids)])
            (define field-index (hash-ref indices field-number))
            (match field-ids
@@ -92,4 +92,28 @@
           #,@(for/list ([i num-fields])
                (case (field-descriptor-multiplicity (hash-ref fields (hash-ref reverse-indices i)))
                  [(optional) #'#f]
-                 [(repeated) #'null]))))))
+                 [(repeated) #'null]))))
+
+      ;; TODO(endobson) Make deterministic
+      #,@(for/list ([(field-number field-ids) (builder-identifiers-fields ids)])
+           (define field-index (hash-ref indices field-number))
+           (match field-ids
+             [(builder-singular-field-identifiers acc mut available-predicate clearer)
+              #`(begin
+                  (define #,acc
+                    (make-struct-field-accessor accessor #,field-index))
+                  (define #,mut
+                    (make-struct-field-mutator mutator #,field-index)))]
+             [(builder-repeated-field-identifiers
+               count index-accessor list-accessor setter adder list-adder remover clearer
+               index-builder-accessor list-builder-accessor builder-adder)
+              (define mut (generate-temporary 'mut))
+              #`(begin
+                  (define #,list-accessor
+                    (make-struct-field-accessor accessor #,field-index))
+                  #;
+                  (define #,mut
+                    (make-struct-field-mutator mutator #,field-index))
+                  #;
+                  (define (#,adder arg new)
+                    (#,mut arg (cons new (#,acc arg)))))]))))

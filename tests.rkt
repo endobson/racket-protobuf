@@ -74,6 +74,15 @@
         (FileDescriptorSet-builder)
         (FileDescriptorSet-builder))
 
+      (test-begin
+        (define b (FileDescriptorSet-builder))
+        (check-equal? (FileDescriptorSet-builder-file b) '()))
+
+      (test-begin
+        (define b (FileDescriptorProto-builder))
+        (check-equal? (FileDescriptorProto-builder-name b) #f))
+
+
       (check-not-exn (lambda ()
         (call-with-input-file* descriptor-pb-path
           (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet)))))))))

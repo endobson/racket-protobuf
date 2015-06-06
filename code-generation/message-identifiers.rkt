@@ -55,8 +55,8 @@
 
 (define (make-builder-singular-field-identifiers ctx name field)
   (builder-singular-field-identifiers
-    #f ;; accessor
-    #f ;; mutator
+    (format-id ctx "~a-builder-~a" name field) ;; accessor
+    (format-id ctx "set-~a-builder-~a!" name field) ;; mutator
     #f ;; available-predicate
     #f ;; clearer
     ))
@@ -65,8 +65,8 @@
 (define (make-builder-repeated-field-identifiers ctx name field)
   (builder-repeated-field-identifiers
     #f ;; count
-    #f ;; index-accessor
-    #f ;; list-accessor
+    (format-id ctx "~a-builder-~a" name field) ;; index-accessor
+    (format-id ctx "~a-builder-~a" name field) ;; list-accessor
     #f ;; setter
     #f ;; adder
     #f ;; list-adder
