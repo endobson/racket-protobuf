@@ -4,8 +4,18 @@
 (provide
   (struct-out message-identifiers)
   (struct-out singular-field-identifiers)
-  (struct-out repeated-field-identifiers))
+  (struct-out repeated-field-identifiers)
+  (struct-out builder-identifiers)
+  (struct-out builder-singular-field-identifiers)
+  (struct-out builder-repeated-field-identifiers))
+
 
 (struct message-identifiers (constructor fields parser serializer) #:transparent)
 (struct singular-field-identifiers (accessor mutator) #:transparent)
 (struct repeated-field-identifiers (accessor adder) #:transparent)
+
+(struct builder-identifiers (constructor fields parser serializer copier freezer) #:transparent)
+(struct builder-singular-field-identifiers (accessor mutator available-predicate clearer) #:transparent)
+(struct builder-repeated-field-identifiers
+        (count index-accessor list-accessor setter adder list-adder remover clearer
+               index-builder-accessor list-builder-accessor builder-adder) #:transparent)
