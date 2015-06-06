@@ -23,7 +23,7 @@
 
 (define (generate-parser message-ids desc)
   (define name  (message-descriptor-name desc))
-  (define ids (hash-ref message-ids name))
+  (define ids (proto-identifiers-message (hash-ref message-ids name)))
   (define parser (message-identifiers-parser ids))
   (define field-clauses
     (for/list ([(field-number fd) (message-descriptor-fields desc)])
@@ -48,7 +48,7 @@
                ;; TODO make this work
                [(boolean) #`(error 'nyi)]
                [else
-                 (define sub-ids (hash-ref message-ids type))
+                 (define sub-ids (proto-identifiers-message (hash-ref message-ids type)))
                  (define/with-syntax sub-constructor
                    (message-identifiers-constructor sub-ids))
                  (define/with-syntax sub-parser
@@ -78,7 +78,7 @@
                      ;; TODO make this work
                      [(boolean) #`(error 'nyi)]
                      [else
-                       (define sub-ids (hash-ref message-ids type))
+                       (define sub-ids (proto-identifiers-message (hash-ref message-ids type)))
                        (define/with-syntax sub-constructor
                          (message-identifiers-constructor sub-ids))
                        (define/with-syntax sub-parser

@@ -2,6 +2,7 @@
 
 
 (provide
+  (struct-out proto-identifiers)
   (struct-out message-identifiers)
   (struct-out singular-field-identifiers)
   (struct-out repeated-field-identifiers)
@@ -9,6 +10,7 @@
   (struct-out builder-singular-field-identifiers)
   (struct-out builder-repeated-field-identifiers))
 
+(struct proto-identifiers (message builder))
 
 (struct message-identifiers (constructor fields parser serializer) #:transparent)
 (struct singular-field-identifiers (accessor mutator) #:transparent)

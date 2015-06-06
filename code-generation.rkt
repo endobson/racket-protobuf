@@ -14,17 +14,17 @@
 ;; ctx: syntax? The lexical context for generated identifiers.
 ;; mds: (listof message-descriptor?) The messages to generate code for.
 (define (generate-code ctx mds)
-  (define mids
+  (define pids
     (for/hash ([md (in-list mds)])
       (values
         (message-descriptor-name md)
-        (message-descriptor->message-identifiers ctx md))))
+        (message-descriptor->proto-identifiers ctx md))))
 
   #`(begin
       #,@(for/list ([md (in-list mds)])
            #`(begin
-               #,(generate-structure mids md)
-               #,(generate-parser mids md)))))
+               #,(generate-structure pids md)
+               #,(generate-parser pids md)))))
 
 
 

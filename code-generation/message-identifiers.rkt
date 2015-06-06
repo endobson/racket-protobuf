@@ -6,7 +6,13 @@
   racket/match
   racket/syntax)
 
-(provide message-descriptor->message-identifiers)
+(provide message-descriptor->proto-identifiers)
+
+(define (message-descriptor->proto-identifiers ctx md)
+  (proto-identifiers
+    (message-descriptor->message-identifiers ctx md)
+    (message-descriptor->builder-identifiers ctx md)))
+
 
 ;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->message-identifiers ctx md)
@@ -58,7 +64,6 @@
 
 (define (make-builder-repeated-field-identifiers ctx name field)
   (builder-repeated-field-identifiers
-    #f ;; count
     #f ;; count
     #f ;; index-accessor
     #f ;; list-accessor

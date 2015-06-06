@@ -14,7 +14,7 @@
 
 (define (generate-structure message-ids desc)
   (match-define (message-descriptor name fields) desc)
-  (define ids (hash-ref message-ids name))
+  (define ids (proto-identifiers-message (hash-ref message-ids name)))
   (define/with-syntax constructor (message-identifiers-constructor ids))
   (define/with-syntax (type-descriptor raw-constructor predicate accessor mutator)
     (generate-temporaries '(type-descriptor raw-constructor predicate accessor mutator)))
