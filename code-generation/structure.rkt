@@ -106,18 +106,16 @@
                   (define #,mut
                     (make-struct-field-mutator mutator #,field-index)))]
              [(builder-repeated-field-identifiers
-               count index-accessor list-accessor setter adder list-adder remover clearer
+               count acc setter adder list-adder remover clearer
                index-builder-accessor list-builder-accessor builder-adder)
               (define mut (generate-temporary 'mut))
               #`(begin
-                  (define #,list-accessor
+                  (define #,acc
                     (make-struct-field-accessor accessor #,field-index))
-                  #;
                   (define #,mut
                     (make-struct-field-mutator mutator #,field-index))
-                  #;
-                  (define (#,adder arg new)
-                    (#,mut arg (cons new (#,acc arg)))))]))))
+                  (define (#,adder builder new)
+                    (#,mut builder (append (#,acc builder) (list new)))))]))))
 
 ;; The default value for a given proto buf type.
 (define (default-value type)

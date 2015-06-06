@@ -19,5 +19,5 @@
 (struct builder-identifiers (constructor fields parser serializer copier freezer) #:transparent)
 (struct builder-singular-field-identifiers (accessor mutator available-predicate clearer) #:transparent)
 (struct builder-repeated-field-identifiers
-        (count index-accessor list-accessor setter adder list-adder remover clearer
+        (count accessor setter adder list-adder remover clearer
                index-builder-accessor list-builder-accessor builder-adder) #:transparent)

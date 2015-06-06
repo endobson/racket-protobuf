@@ -65,10 +65,9 @@
 (define (make-builder-repeated-field-identifiers ctx name field)
   (builder-repeated-field-identifiers
     #f ;; count
-    (format-id ctx "~a-builder-~a" name field) ;; index-accessor
-    (format-id ctx "~a-builder-~a" name field) ;; list-accessor
+    (format-id ctx "~a-builder-~a" name field) ;; accessor
     #f ;; setter
-    #f ;; adder
+    (format-id ctx "~a-builder-add-~a!" name field) ;; accessor
     #f ;; list-adder
     #f ;; remover
     #f ;; clearer
@@ -100,3 +99,5 @@
 ;; foo-builder-b-builder ; foo-builder? natural? -> bar-builder?
 ;; set-foo-builder-a! : foo-builder? (or/c bar? bar-builder?) -> void?
 ;; set-foo-builder-b! : foo-builder? natural? (or/c bar? bar-builder?) -> void?
+;; foo-builder-add-b! : foo-builder? (or/c bar? bar-builder?) -> bar-builder?
+;; foo-builder-add-b! : foo-builder? (or/c bar? bar-builder?) natural? -> bar-builder?

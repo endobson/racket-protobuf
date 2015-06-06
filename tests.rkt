@@ -89,7 +89,12 @@
 
       (test-begin
         (define b (FieldDescriptorProto-builder))
-        (check-equal? (FieldDescriptorProto-builder-number b) 0)))))
+        (check-equal? (FieldDescriptorProto-builder-number b) 0))
 
-
-
+      (test-begin
+        (define b (FileDescriptorProto-builder))
+        (check-equal? (FileDescriptorProto-builder-dependency b) '())
+        (FileDescriptorProto-builder-add-dependency! b "dep1")
+        (check-equal? (FileDescriptorProto-builder-dependency b) '("dep1"))
+        (FileDescriptorProto-builder-add-dependency! b "dep2")
+        (check-equal? (FileDescriptorProto-builder-dependency b) '("dep1" "dep2"))))))
