@@ -69,7 +69,12 @@
       (check-not-exn (lambda ()
         (call-with-input-file* tmp-pb-path
           (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet))))))
+
+      (check-equal?
+        (FileDescriptorSet-builder)
+        (FileDescriptorSet-builder))
+
       (check-not-exn (lambda ()
         (call-with-input-file* descriptor-pb-path
           (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet)))))))))
-              
+

@@ -23,7 +23,8 @@
   #`(begin
       #,@(for/list ([md (in-list mds)])
            #`(begin
-               #,(generate-structure pids md)
+               #,(generate-message-structure pids md)
+               #,(generate-builder-structure pids md)
                #,(generate-parser pids md)))))
 
 
