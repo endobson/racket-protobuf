@@ -18,7 +18,7 @@
   generate-builder-structure)
 
 
-(define (generate-message-structure message-ids desc)
+(define (generate-message-structure message-ids enum-ids desc)
   (match-define (message-descriptor name fields) desc)
   (define ids (proto-identifiers-message (hash-ref message-ids name)))
   (define builder-ids (proto-identifiers-builder (hash-ref message-ids name)))
@@ -49,7 +49,7 @@
           #,@(for/list ([i num-fields])
                (define fd (hash-ref fields (hash-ref reverse-indices i)))
                (case (field-descriptor-multiplicity fd)
-                 [(optional) (default-value (field-descriptor-type fd))]
+                 [(optional) (default-value enum-ids (field-descriptor-type fd))]
                  [(repeated) #'null]))))
 
       (define (freezer builder)
@@ -88,7 +88,7 @@
               #`(define #,acc
                   (make-struct-field-accessor accessor field-index 'field-name))]))))
 
-(define (generate-builder-structure message-ids desc)
+(define (generate-builder-structure message-ids enum-ids desc)
   (match-define (message-descriptor name fields) desc)
   (define ids (proto-identifiers-builder (hash-ref message-ids name)))
   (define/with-syntax constructor (builder-identifiers-constructor ids))
@@ -116,7 +116,7 @@
           #,@(for/list ([i num-fields])
                (define fd (hash-ref fields (hash-ref reverse-indices i)))
                (case (field-descriptor-multiplicity fd)
-                 [(optional) (default-value (field-descriptor-type fd))]
+                 [(optional) (default-value enum-ids (field-descriptor-type fd))]
                  [(repeated) #'null]))))
 
       ;; TODO(endobson) Make deterministic
@@ -144,14 +144,15 @@
                     (#,mut builder (append (#,acc builder) (list new)))))]))))
 
 ;; The default value for a given proto buf type.
-(define (default-value type)
+(define (default-value enum-ids type)
   (match type
-    ['int32 0]
-    ['string ""]
-    ['bytes #""]
-    ['boolean #f]
-    [(list 'message (? string?)) #f]
-    [(list 'enum (? string?)) 0]))
+    ['int32 #'0]
+    ['string #'""]
+    ['bytes #'#""]
+    ['boolean #'#f]
+    [(list 'message (? string?)) #'#f]
+    [(list 'enum (? string? enum-type))
+     #`(#,(enum-identifiers-number->enum (hash-ref enum-ids enum-type)) 0)]))
 
 (define (message-type? type)
   (match type

@@ -32,8 +32,8 @@
   #`(begin
       #,@(for/list ([md (in-list mds)])
            #`(begin
-               #,(generate-message-structure pids md)
-               #,(generate-builder-structure pids md)
+               #,(generate-message-structure pids eids md)
+               #,(generate-builder-structure pids eids md)
                #,(generate-parser pids eids md)))
       #,@(for/list ([ed (in-list eds)])
            (generate-enum (hash-ref eids (enum-descriptor-name ed)) ed))))

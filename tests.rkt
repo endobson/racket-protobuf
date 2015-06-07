@@ -37,7 +37,7 @@
 
       (test-begin
         (define p (FieldDescriptorProto))
-        (check-equal? (FieldDescriptorProto-label p) 0))
+        (check-equal? (FieldDescriptorProto-label p) 'LABEL_UNKNOWN))
 
       (test-begin
         (define b (FieldDescriptorProto-builder))
