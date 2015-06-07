@@ -8,7 +8,8 @@
   (struct-out repeated-field-identifiers)
   (struct-out builder-identifiers)
   (struct-out builder-singular-field-identifiers)
-  (struct-out builder-repeated-field-identifiers))
+  (struct-out builder-repeated-field-identifiers)
+  (struct-out enum-identifiers))
 
 (struct proto-identifiers (message builder))
 
@@ -21,3 +22,5 @@
 (struct builder-repeated-field-identifiers
         (count accessor setter adder list-adder remover clearer
                index-builder-accessor list-builder-accessor builder-adder) #:transparent)
+
+(struct enum-identifiers (predicate list enum->number number->enum))

@@ -34,7 +34,7 @@
     [pattern (name:id (~datum =) number:exact-positive-integer)
       #:attr descriptor 
         (enum-value-descriptor
-          (syntax-e (attribute name))
+          (symbol->string (syntax-e (attribute name)))
           (syntax-e (attribute number)))])
 
   (define-syntax-class message-spec

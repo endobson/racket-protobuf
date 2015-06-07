@@ -5,6 +5,7 @@
 
   "code-generation/parser.rkt"
   "code-generation/structure.rkt"
+  "code-generation/enum.rkt"
   "code-generation/message-identifiers.rkt"
   "message-descriptor.rkt")
 
@@ -14,8 +15,8 @@
 ;; ctx: syntax? The lexical context for generated identifiers.
 ;; mds: (listof message-descriptor?) The messages to generate code for.
 (define (generate-code ctx descriptors)
-  ;; Ignore enum descriptors for now.
   (define mds (filter message-descriptor? descriptors))
+  (define eds (filter enum-descriptor? descriptors))
   (define pids
     (for/hash ([md (in-list mds)])
       (values
@@ -27,7 +28,9 @@
            #`(begin
                #,(generate-message-structure pids md)
                #,(generate-builder-structure pids md)
-               #,(generate-parser pids md)))))
+               #,(generate-parser pids md)))
+      #,@(for/list ([ed (in-list eds)])
+           (generate-enum (enum-descriptor->enum-identifiers ctx ed) ed))))
 
 
 

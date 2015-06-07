@@ -28,6 +28,14 @@
           (call-with-input-file* descriptor-pb-path
             (λ (port) (parse-FileDescriptorSet port)))))))
 
+    (test-suite "Enums"
+      (check-true (Label? 'LABEL_OPTIONAL))
+      (check-false (Label? 'LABEL_))
+      (check-equal? (Label->number 'LABEL_OPTIONAL) 1)
+      (check-equal? (number->Label 2) 'LABEL_REQUIRED)
+      (check-equal? Label-list '(LABEL_OPTIONAL LABEL_REQUIRED LABEL_REPEATED)))
+
+
     (test-suite "Builders"
 
 
@@ -51,6 +59,7 @@
         (define b (FileDescriptorProto-builder))
         (define p (FileDescriptorProto))
         (check-equal? (freeze-FileDescriptorProto b) p))
+
 
       (test-begin
         (define b (FileDescriptorProto-builder))

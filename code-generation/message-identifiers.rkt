@@ -6,7 +6,9 @@
   racket/match
   racket/syntax)
 
-(provide message-descriptor->proto-identifiers)
+(provide
+  message-descriptor->proto-identifiers
+  enum-descriptor->enum-identifiers)
 
 (define (message-descriptor->proto-identifiers ctx md)
   (proto-identifiers
@@ -74,6 +76,16 @@
     #f ;; list-builder-accessor
     #f ;; builder-adder
     ))
+
+
+(define (enum-descriptor->enum-identifiers ctx descriptor)
+  (define name (enum-descriptor-name descriptor))
+  (enum-identifiers
+    (format-id ctx "~a?" name)
+    (format-id ctx "~a-list" name)
+    (format-id ctx "~a->number" name)
+    (format-id ctx "number->~a" name)))
+
 
 ;; Names for:
 ;; message Foo {
