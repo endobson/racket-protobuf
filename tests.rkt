@@ -4,6 +4,7 @@
   "proto-reader.rkt"
   "define-proto.rkt"
   "proto-descriptors.rkt"
+  "convert-descriptors.rkt"
   rackunit
   racket/runtime-path)
 
@@ -19,11 +20,14 @@
   (test-suite "Protobuf Tests"
     (test-suite "FileDescriptors are Parseable"
       (check-not-exn (lambda ()
-        (call-with-input-file* tmp-pb-path
-          (λ (port) (parse-FileDescriptorSet port)))))
+        (convert-descriptors
+          (call-with-input-file* tmp-pb-path
+            (λ (port) (parse-FileDescriptorSet port))))))
       (check-not-exn (lambda ()
-        (call-with-input-file* descriptor-pb-path
-          (λ (port) (parse-FileDescriptorSet port))))))
+        (convert-descriptors
+          (call-with-input-file* descriptor-pb-path
+            (λ (port) (parse-FileDescriptorSet port)))))))
+
     (test-suite "Builders"
 
 
