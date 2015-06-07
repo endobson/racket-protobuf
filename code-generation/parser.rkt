@@ -9,6 +9,7 @@
 
   "../message-identifiers.rkt"
   "../message-descriptor.rkt"
+  racket/list
   racket/match
   racket/syntax)
 
@@ -16,9 +17,9 @@
 
 (define (type->expected-wire-type type)
   (match type
-    [(or 'string 'bytes (? string?))
+    [(or 'string 'bytes (list 'message _) (? string?))
      'length-delimited]
-    [(or 'int32 'boolean)
+    [(or 'int32 'boolean (list 'enum _))
      'varint]))
 
 
@@ -43,7 +44,7 @@
      ;; TODO make this work
      [(boolean) #`(error 'nyi)]
      [else
-       (define sub-ids (proto-identifiers-builder (hash-ref proto-ids type)))
+       (define sub-ids (proto-identifiers-builder (hash-ref proto-ids (second type))))
        (define/with-syntax sub-constructor
          (builder-identifiers-constructor sub-ids))
        (define/with-syntax sub-parser
@@ -74,7 +75,7 @@
            ;; TODO make this work
            [(boolean) #`(error 'nyi)]
            [else
-             (define sub-ids (hash-ref proto-ids type))
+             (define sub-ids (hash-ref proto-ids (second type)))
              (define/with-syntax sub-constructor
                (builder-identifiers-constructor (proto-identifiers-builder sub-ids)))
              (define/with-syntax sub-parser

@@ -8,6 +8,7 @@
 
   "../message-identifiers.rkt"
   "../message-descriptor.rkt"
+  racket/list
   racket/match
   racket/function
   racket/syntax)
@@ -58,10 +59,10 @@
                (define builder-field-identifiers (hash-ref (builder-identifiers-fields builder-ids)
                                                            (hash-ref reverse-indices i)))
                (define/with-syntax freeze
-                 (if (string? (field-descriptor-type fd))
+                 (if (list? (field-descriptor-type fd))
                      (message-identifiers-freezer
                        (proto-identifiers-message
-                         (hash-ref message-ids (field-descriptor-type fd))))
+                         (hash-ref message-ids (second (field-descriptor-type fd)))))
                      #'identity))
                (define/with-syntax lift
                  (if (eq? 'repeated (field-descriptor-multiplicity fd))

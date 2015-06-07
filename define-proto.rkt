@@ -26,7 +26,8 @@
       #:attr descriptor 
         (field-descriptor
           (syntax-e (attribute multiplicity))
-          (syntax-e (attribute type))
+          (let ([t (syntax-e (attribute type))])
+            (if (string? t) (list 'message t) t))
           (symbol->string (syntax-e (attribute name))))])
 
   (define-syntax-class enum-value-spec

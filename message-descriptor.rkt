@@ -11,7 +11,7 @@
 ;; fields: (hash/c exact-positive-integer? field-descriptor?)
 (struct message-descriptor (name fields) #:transparent)
 ;; multiplicity: (or/c 'optional 'repeated)
-;; type: (or/c 'int32 'string 'bytes 'boolean string?)
+;; type: (or/c 'int32 'string 'bytes 'boolean (list/c (or/c 'enum 'message) string?))
 ;; name: string?
 (struct field-descriptor (multiplicity type name) #:transparent)
 
