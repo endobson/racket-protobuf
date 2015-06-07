@@ -56,19 +56,19 @@
   (message "FieldDescriptorProto"
     [optional string name = 1]
     [optional int32 number = 3]
-    #;
     [optional enum "Label" label = 4]
-    #;
     [optional enum "Type" type = 5]
     [optional string type_name = 6]
     [optional int32 oneof_index = 9])
 
   (enum "Label"
+    [LABEL_UNKNOWN  = 0] ;; So that defaults work
     [LABEL_OPTIONAL = 1]
     [LABEL_REQUIRED = 2]
     [LABEL_REPEATED = 3])
 
   (enum "Type"
+    [TYPE_UNKNOWN  = 0] ;; So that defaults work
     [TYPE_DOUBLE   = 1]
     [TYPE_FLOAT    = 2]
     [TYPE_INT64    = 3]

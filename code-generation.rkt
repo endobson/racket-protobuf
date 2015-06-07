@@ -22,15 +22,21 @@
       (values
         (message-descriptor-name md)
         (message-descriptor->proto-identifiers ctx md))))
+  (define eids
+    (for/hash ([ed (in-list eds)])
+      (values
+        (enum-descriptor-name ed)
+        (enum-descriptor->enum-identifiers ctx ed))))
+
 
   #`(begin
       #,@(for/list ([md (in-list mds)])
            #`(begin
                #,(generate-message-structure pids md)
                #,(generate-builder-structure pids md)
-               #,(generate-parser pids md)))
+               #,(generate-parser pids eids md)))
       #,@(for/list ([ed (in-list eds)])
-           (generate-enum (enum-descriptor->enum-identifiers ctx ed) ed))))
+           (generate-enum (hash-ref eids (enum-descriptor-name ed)) ed))))
 
 
 

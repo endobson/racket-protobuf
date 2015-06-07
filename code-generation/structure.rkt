@@ -150,7 +150,8 @@
     ['string ""]
     ['bytes #""]
     ['boolean #f]
-    [(list 'message (? string?)) #f]))
+    [(list 'message (? string?)) #f]
+    [(list 'enum (? string?)) 0]))
 
 (define (message-type? type)
   (match type

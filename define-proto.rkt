@@ -35,7 +35,7 @@
 
   (define-syntax-class enum-value-spec
     #:attributes (descriptor)
-    [pattern (name:id (~datum =) number:exact-positive-integer)
+    [pattern (name:id (~datum =) number:integer)
       #:attr descriptor 
         (enum-value-descriptor
           (symbol->string (syntax-e (attribute name)))

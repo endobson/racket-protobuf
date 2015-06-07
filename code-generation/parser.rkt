@@ -23,7 +23,7 @@
      'varint]))
 
 
-(define (generate-parser proto-ids desc)
+(define (generate-parser proto-ids enum-ids desc)
   (define name  (message-descriptor-name desc))
   (define message-ids (proto-identifiers-message (hash-ref proto-ids name)))
   (define builder-ids (proto-identifiers-builder (hash-ref proto-ids name)))
@@ -43,6 +43,11 @@
      ['int32 #`(mutator current-builder (read-proto-varint port))]
      ;; TODO make this work
      ['boolean #`(error 'nyi)]
+     [(list 'enum enum-type)
+       (define sub-ids (hash-ref enum-ids enum-type))
+      #`(mutator current-builder
+                 (#,(enum-identifiers-number->enum sub-ids)
+                  (read-proto-varint port)))]
      [(list 'message message-type)
        (define sub-ids (proto-identifiers-builder (hash-ref proto-ids message-type)))
        (define/with-syntax sub-constructor
@@ -74,6 +79,8 @@
            ['int32 #'(read-proto-varint port)]
            ;; TODO make this work
            ['boolean #`(error 'nyi)]
+           ;; TODO make this work
+           [(list 'enum enum-type) #`(error 'nyi)]
            [(list 'message message-type)
              (define sub-ids (hash-ref proto-ids message-type))
              (define/with-syntax sub-constructor

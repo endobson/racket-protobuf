@@ -33,7 +33,16 @@
       (check-false (Label? 'LABEL_))
       (check-equal? (Label->number 'LABEL_OPTIONAL) 1)
       (check-equal? (number->Label 2) 'LABEL_REQUIRED)
-      (check-equal? Label-list '(LABEL_OPTIONAL LABEL_REQUIRED LABEL_REPEATED)))
+      (check-equal? Label-list '(LABEL_UNKNOWN LABEL_OPTIONAL LABEL_REQUIRED LABEL_REPEATED))
+
+      (test-begin
+        (define p (FieldDescriptorProto))
+        (check-equal? (FieldDescriptorProto-label p) 0))
+
+      (test-begin
+        (define b (FieldDescriptorProto-builder))
+        (set-FieldDescriptorProto-builder-label! b 'LABEL_OPTIONAL)
+        (check-equal? (FieldDescriptorProto-builder-label b) 'LABEL_OPTIONAL)))
 
 
     (test-suite "Builders"
