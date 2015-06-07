@@ -6,30 +6,25 @@
   "proto-descriptors.rkt"
   "convert-descriptors.rkt"
   "code-generation.rkt"
+  "import-proto.rkt"
   rackunit
   racket/runtime-path)
 
 (provide tests)
 
-
-(define-runtime-path tmp-pb-path "tests/test-data/tmp.pb")
-(define-runtime-path descriptor-pb-path "tests/test-data/descriptor.pb")
-
-
+(define-namespace-anchor anchor)
 
 (define tests
   (test-suite "Protobuf Tests"
-    (test-suite "FileDescriptors are Parseable"
-      (check-not-exn (lambda ()
-        (generate-code #'here
-          (convert-descriptors
-            (call-with-input-file* tmp-pb-path
-              (λ (port) (parse-FileDescriptorSet port)))))))
-      (check-not-exn (lambda ()
-        (generate-code #'here
-          (convert-descriptors
-            (call-with-input-file* descriptor-pb-path
-              (λ (port) (parse-FileDescriptorSet port))))))))
+    (test-suite "Can import FileDescriptors"
+      (test-begin
+        (parameterize ([current-namespace (namespace-anchor->namespace anchor)])
+          (check-not-exn (lambda ()
+            (eval #'(let () (import-proto "tests/test-data/tmp.pb") (void)))))))
+      (test-begin
+        (parameterize ([current-namespace (namespace-anchor->namespace anchor)])
+          (check-not-exn (lambda ()
+            (eval #'(let () (import-proto "tests/test-data/descriptor.pb") (void))))))))
 
     (test-suite "Enums"
       (check-true (Label? 'LABEL_OPTIONAL))
