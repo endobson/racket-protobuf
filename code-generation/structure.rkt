@@ -59,7 +59,7 @@
                (define builder-field-identifiers (hash-ref (builder-identifiers-fields builder-ids)
                                                            (hash-ref reverse-indices i)))
                (define/with-syntax freeze
-                 (if (list? (field-descriptor-type fd))
+                 (if (message-type? (field-descriptor-type fd))
                      (message-identifiers-freezer
                        (proto-identifiers-message
                          (hash-ref message-ids (second (field-descriptor-type fd)))))
@@ -150,3 +150,8 @@
     ['bytes #""]
     ['boolean #f]
     [(? string?) #f]))
+
+(define (message-type? type)
+  (match type
+    [(list 'message _) #t]
+    [_ #f]))
