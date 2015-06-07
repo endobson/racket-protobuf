@@ -26,8 +26,7 @@
         ((if (equal? 'optional multiplicity)
              singular-field-identifiers
              repeated-field-identifiers)
-          (format-id ctx "~a-~a" name field-name)
-          (format-id ctx "set-~a-~a!" name field-name))))
+          (format-id ctx "~a-~a" name field-name))))
     (format-id ctx "parse-~a" name)
     (format-id ctx "write-~a" name)
     (format-id ctx "freeze-~a" name)))

@@ -9,6 +9,7 @@
   "../message-identifiers.rkt"
   "../message-descriptor.rkt"
   racket/match
+  racket/function
   racket/syntax)
 
 (provide
@@ -40,7 +41,8 @@
   (define num-fields (hash-count fields))
   #`(begin
       (define-values (type-descriptor raw-constructor predicate accessor mutator)
-        (make-struct-type '#,(string->symbol name) #f #,num-fields 0 #f empty #f))
+        (make-struct-type '#,(string->symbol name) #f #,num-fields 0 #f empty #f #f
+                          '#,(build-list num-fields identity)))
       (define (constructor)
         (raw-constructor
           #,@(for/list ([i num-fields])
@@ -75,21 +77,12 @@
       #,@(for/list ([(field-number field-ids) (message-identifiers-fields ids)])
            (define field-index (hash-ref indices field-number))
            (match field-ids
-             [(singular-field-identifiers acc mut)
-              #`(begin
-                  (define #,acc
-                    (make-struct-field-accessor accessor #,field-index))
-                  (define #,mut
-                    (make-struct-field-mutator mutator #,field-index)))]
-             [(repeated-field-identifiers acc adder)
-              (define mut (generate-temporary 'mut))
-              #`(begin
-                  (define #,acc
-                    (make-struct-field-accessor accessor #,field-index))
-                  (define #,mut
-                    (make-struct-field-mutator mutator #,field-index))
-                  (define (#,adder arg new)
-                    (#,mut arg (cons new (#,acc arg)))))]))))
+             [(singular-field-identifiers acc)
+              #`(define #,acc
+                  (make-struct-field-accessor accessor #,field-index))]
+             [(repeated-field-identifiers acc)
+              #`(define #,acc
+                  (make-struct-field-accessor accessor #,field-index))]))))
 
 (define (generate-builder-structure message-ids desc)
   (match-define (message-descriptor name fields) desc)
