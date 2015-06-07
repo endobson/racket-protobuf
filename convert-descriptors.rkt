@@ -9,37 +9,24 @@
 (provide convert-descriptors)
 
 (define (convert-descriptors file-descriptor-set)
-  (for/fold ([acc empty]) ([file-descriptor (FileDescriptorSet-file file-descriptor-set)])
-    (convert-descriptor file-descriptor acc)))
+  (flatten (map convert-file-descriptor (FileDescriptorSet-file file-descriptor-set))))
 
-(define (convert-descriptor file-descriptor acc)
-  (convert-message-types
-    (string-append "." (FileDescriptorProto-package file-descriptor))
-    (FileDescriptorProto-message_type file-descriptor)
-    acc))
-
-(define (convert-message-types container-name message-types acc)
-  (for/fold ([acc acc]) ([message-type message-types])
-    (convert-message-type container-name message-type acc)))
-
-(define (convert-enum-types container-name enum-types acc)
-  (for/fold ([acc acc]) ([enum-type enum-types])
-    (convert-enum-type container-name enum-type acc)))
-
-(define (convert-enum-type container-name enum-type acc)
-  (define enum-name
-    (string-append container-name "." (EnumDescriptorProto-name enum-type)))
-  (cons
-    (enum-descriptor
-      enum-name
-      (for/list ([value (EnumDescriptorProto-value enum-type)])
-        (enum-value-descriptor
-          (EnumValueDescriptorProto-name value)
-          (EnumValueDescriptorProto-number value))))
-    acc))
+(define (convert-file-descriptor file-descriptor)
+  (map
+    (convert-message-type (string-append "." (FileDescriptorProto-package file-descriptor)))
+    (FileDescriptorProto-message_type file-descriptor)))
 
 
-(define (convert-message-type container-name message-type acc)
+(define ((convert-enum-type container-name) enum-type)
+  (enum-descriptor
+    (string-append container-name "." (EnumDescriptorProto-name enum-type))
+    (for/list ([value (EnumDescriptorProto-value enum-type)])
+      (enum-value-descriptor
+        (EnumValueDescriptorProto-name value)
+        (EnumValueDescriptorProto-number value)))))
+
+
+(define ((convert-message-type container-name) message-type)
   (define message-name
     (string-append container-name "." (DescriptorProto-name message-type)))
   (define self
@@ -67,8 +54,8 @@
               ['TYPE_ENUM
                (list 'enum (FieldDescriptorProto-type_name field))])
             (FieldDescriptorProto-name field))))))
-
-  (cons self
-    (convert-enum-types message-name (DescriptorProto-enum_type message-type)
-      (convert-message-types message-name (DescriptorProto-nested_type message-type) acc))))
+  (list
+    self
+    (map (convert-enum-type message-name) (DescriptorProto-enum_type message-type))
+    (map (convert-message-type message-name) (DescriptorProto-nested_type message-type))))
 
