@@ -29,6 +29,14 @@
           (syntax-e (attribute type))
           (syntax-e (attribute name)))])
 
+  (define-syntax-class enum-value-spec
+    #:attributes (descriptor)
+    [pattern (name:id (~datum =) number:exact-positive-integer)
+      #:attr descriptor 
+        (enum-value-descriptor
+          (syntax-e (attribute name))
+          (syntax-e (attribute number)))])
+
   (define-syntax-class message-spec
     #:attributes (descriptor)
     [pattern ((~datum message) name:str fields:field-spec ...)
@@ -36,7 +44,12 @@
         (message-descriptor
           (syntax-e (attribute name))
           (make-hash
-            (map cons (attribute fields.number) (attribute fields.descriptor))))]))
+            (map cons (attribute fields.number) (attribute fields.descriptor))))]
+    [pattern ((~datum enum) name:str values:enum-value-spec ...)
+      #:attr descriptor
+        (enum-descriptor
+          (syntax-e (attribute name))
+          (attribute values.descriptor))]))
 
 
 (define-syntax (define-proto stx)

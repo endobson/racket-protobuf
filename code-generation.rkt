@@ -13,7 +13,9 @@
 ;; This generates the code given a list of message descriptors.
 ;; ctx: syntax? The lexical context for generated identifiers.
 ;; mds: (listof message-descriptor?) The messages to generate code for.
-(define (generate-code ctx mds)
+(define (generate-code ctx descriptors)
+  ;; Ignore enum descriptors for now.
+  (define mds (filter message-descriptor? descriptors))
   (define pids
     (for/hash ([md (in-list mds)])
       (values
