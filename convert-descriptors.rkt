@@ -2,6 +2,7 @@
 
 (require
   racket/list
+  racket/match
   "message-descriptor.rkt"
   "proto-descriptors.rkt")
 
@@ -22,7 +23,21 @@
       (values
         (FieldDescriptorProto-number field)
         (field-descriptor
-          'optional ;;TODO
-          'string ;;TODO
+          (match (FieldDescriptorProto-label field)
+            ['LABEL_OPTIONAL 'optional]
+            ['LABEL_REPEATED 'repeated])
+          (match (FieldDescriptorProto-type field)
+            ['TYPE_STRING 'string]
+            ['TYPE_BYTES 'bytes]
+            ['TYPE_BOOL 'boolean]
+            ['TYPE_INT32 'int32]
+            ;; TODO handle the following types
+            ['TYPE_INT64 'int64]
+            ['TYPE_UINT64 'uint64]
+            ['TYPE_DOUBLE 'double]
+            ['TYPE_MESSAGE
+             (list 'message (FieldDescriptorProto-type_name field))]
+            ['TYPE_ENUM
+             (list 'enum (FieldDescriptorProto-type_name field))])
           (FieldDescriptorProto-name field))))))
 

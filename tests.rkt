@@ -46,8 +46,6 @@
 
 
     (test-suite "Builders"
-
-
       (check-equal?
         (FileDescriptorSet-builder)
         (FileDescriptorSet-builder))
