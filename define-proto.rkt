@@ -9,11 +9,15 @@
 (provide define-proto)
 
 (begin-for-syntax
-  (define-syntax-class proto-type
-    (pattern (~datum string))
-    (pattern (~datum boolean))
-    (pattern (~datum int32))
-    (pattern type-ref:str))
+  (define-splicing-syntax-class proto-type
+    #:attributes (value)
+    (pattern (~datum string) #:attr value 'string)
+    (pattern (~datum boolean) #:attr value 'boolean)
+    (pattern (~datum int32) #:attr value 'int32)
+    (pattern (~seq (~datum message) type-ref:str)
+      #:attr value (list 'message (syntax-e (attribute type-ref))))
+    (pattern (~seq (~datum enum) type-ref:str)
+      #:attr value (list 'enum (syntax-e (attribute type-ref)))))
 
   (define-syntax-class field-spec
     #:attributes (number descriptor)
@@ -26,8 +30,7 @@
       #:attr descriptor 
         (field-descriptor
           (syntax-e (attribute multiplicity))
-          (let ([t (syntax-e (attribute type))])
-            (if (string? t) (list 'message t) t))
+          (attribute type.value)
           (symbol->string (syntax-e (attribute name))))])
 
   (define-syntax-class enum-value-spec
