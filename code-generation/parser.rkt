@@ -33,18 +33,18 @@
       (hash-ref (builder-identifiers-fields builder-ids) field-number))
     (define/with-syntax accessor accessor*)
     (define/with-syntax mutator mutator*)
-    (case type
-     [(string)
+    (match type
+     ['string
       #`(let ([amount (read-proto-varint port)])
           (mutator current-builder (read-proto-string port amount)))]
-     [(bytes) #`(mutator current-builder
+     ['bytes #`(mutator current-builder
                  (read-proto-bytes port (read-proto-varint port)))]
      ;; TODO make this cap in 32 bit range
-     [(int32) #`(mutator current-builder (read-proto-varint port))]
+     ['int32 #`(mutator current-builder (read-proto-varint port))]
      ;; TODO make this work
-     [(boolean) #`(error 'nyi)]
-     [else
-       (define sub-ids (proto-identifiers-builder (hash-ref proto-ids (second type))))
+     ['boolean #`(error 'nyi)]
+     [(list 'message message-type)
+       (define sub-ids (proto-identifiers-builder (hash-ref proto-ids message-type)))
        (define/with-syntax sub-constructor
          (builder-identifiers-constructor sub-ids))
        (define/with-syntax sub-parser
@@ -67,15 +67,15 @@
     (define/with-syntax accessor accessor*)
     (define/with-syntax adder adder*)
     #`(adder current-builder
-        #,(case type
-           [(string) #'(read-proto-string port (read-proto-varint port))]
-           [(bytes) #'(read-proto-bytes port (read-proto-varint port))]
+        #,(match type
+           ['string #'(read-proto-string port (read-proto-varint port))]
+           ['bytes #'(read-proto-bytes port (read-proto-varint port))]
            ;; TODO make this cap in 32 bit range
-           [(int32) #'(read-proto-varint port)]
+           ['int32 #'(read-proto-varint port)]
            ;; TODO make this work
-           [(boolean) #`(error 'nyi)]
-           [else
-             (define sub-ids (hash-ref proto-ids (second type)))
+           ['boolean #`(error 'nyi)]
+           [(list 'message message-type)
+             (define sub-ids (hash-ref proto-ids message-type))
              (define/with-syntax sub-constructor
                (builder-identifiers-constructor (proto-identifiers-builder sub-ids)))
              (define/with-syntax sub-parser
