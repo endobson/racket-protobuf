@@ -27,7 +27,7 @@
         (field-descriptor
           (syntax-e (attribute multiplicity))
           (syntax-e (attribute type))
-          (syntax-e (attribute name)))])
+          (symbol->string (syntax-e (attribute name))))])
 
   (define-syntax-class enum-value-spec
     #:attributes (descriptor)

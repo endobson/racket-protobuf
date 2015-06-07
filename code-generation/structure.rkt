@@ -75,14 +75,16 @@
 
       ;; TODO(endobson) Make deterministic
       #,@(for/list ([(field-number field-ids) (message-identifiers-fields ids)])
-           (define field-index (hash-ref indices field-number))
+           (define/with-syntax field-index (hash-ref indices field-number))
+           (define/with-syntax field-name
+             (string->symbol (field-descriptor-name (hash-ref fields field-number))))
            (match field-ids
              [(singular-field-identifiers acc)
               #`(define #,acc
-                  (make-struct-field-accessor accessor #,field-index))]
+                  (make-struct-field-accessor accessor field-index 'field-name))]
              [(repeated-field-identifiers acc)
               #`(define #,acc
-                  (make-struct-field-accessor accessor #,field-index))]))))
+                  (make-struct-field-accessor accessor field-index 'field-name))]))))
 
 (define (generate-builder-structure message-ids desc)
   (match-define (message-descriptor name fields) desc)
@@ -117,23 +119,25 @@
 
       ;; TODO(endobson) Make deterministic
       #,@(for/list ([(field-number field-ids) (builder-identifiers-fields ids)])
-           (define field-index (hash-ref indices field-number))
+           (define/with-syntax field-index (hash-ref indices field-number))
+           (define/with-syntax field-name
+             (string->symbol (field-descriptor-name (hash-ref fields field-number))))
            (match field-ids
              [(builder-singular-field-identifiers acc mut available-predicate clearer)
               #`(begin
                   (define #,acc
-                    (make-struct-field-accessor accessor #,field-index))
+                    (make-struct-field-accessor accessor field-index 'field-name))
                   (define #,mut
-                    (make-struct-field-mutator mutator #,field-index)))]
+                    (make-struct-field-mutator mutator field-index 'field-name)))]
              [(builder-repeated-field-identifiers
                count acc setter adder list-adder remover clearer
                index-builder-accessor list-builder-accessor builder-adder)
               (define mut (generate-temporary 'mut))
               #`(begin
                   (define #,acc
-                    (make-struct-field-accessor accessor #,field-index))
+                    (make-struct-field-accessor accessor field-index 'field-name))
                   (define #,mut
-                    (make-struct-field-mutator mutator #,field-index))
+                    (make-struct-field-mutator mutator field-index 'field-name))
                   (define (#,adder builder new)
                     (#,mut builder (append (#,acc builder) (list new)))))]))))
 
