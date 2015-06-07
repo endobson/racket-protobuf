@@ -48,8 +48,11 @@
   (message "EnumValueDescriptorProto"
     [optional string name = 1]
     [optional int32 number = 2]
-    #;
     [optional message "EnumValueOptions" options = 3])
+  (message "EnumValueOptions"
+    [optional boolean deprecated = 1]
+    #;
+    [repeated message "UninterpretedOption" uninterpreted_option = 999])
   (message "FieldDescriptorProto"
     [optional string name = 1]
     [optional int32 number = 3]

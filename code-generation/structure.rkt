@@ -60,9 +60,10 @@
                                                            (hash-ref reverse-indices i)))
                (define/with-syntax freeze
                  (if (message-type? (field-descriptor-type fd))
-                     (message-identifiers-freezer
-                       (proto-identifiers-message
-                         (hash-ref message-ids (second (field-descriptor-type fd)))))
+                     (with-syntax ([freezer (message-identifiers-freezer
+                                              (proto-identifiers-message
+                                                (hash-ref message-ids (second (field-descriptor-type fd)))))])
+                       #'(λ (b) (and b (freezer b))))
                      #'identity))
                (define/with-syntax lift
                  (if (eq? 'repeated (field-descriptor-multiplicity fd))
@@ -149,7 +150,7 @@
     ['string ""]
     ['bytes #""]
     ['boolean #f]
-    [(? string?) #f]))
+    [(list 'message (? string?)) #f]))
 
 (define (message-type? type)
   (match type
