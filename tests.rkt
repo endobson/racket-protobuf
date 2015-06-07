@@ -68,10 +68,10 @@
     (test-suite "FileDescriptors are Parseable"
       (check-not-exn (lambda ()
         (call-with-input-file* tmp-pb-path
-          (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet))))))
+          (λ (port) (parse-FileDescriptorSet port)))))
       (check-not-exn (lambda ()
         (call-with-input-file* descriptor-pb-path
-          (λ (port) (parse-FileDescriptorSet port (FileDescriptorSet)))))))
+          (λ (port) (parse-FileDescriptorSet port))))))
     (test-suite "Builders"
 
 

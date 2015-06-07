@@ -113,7 +113,7 @@
   (define num-fields (hash-count fields))
   #`(begin
       (define-values (type-descriptor raw-constructor predicate accessor mutator)
-        (make-struct-type '#,(string->symbol name) #f #,num-fields 0 #f empty #f))
+        (make-struct-type '#,(string->symbol (string-append name "-builder")) #f #,num-fields 0 #f empty #f))
       (define (constructor)
         (raw-constructor
           #,@(for/list ([i num-fields])
