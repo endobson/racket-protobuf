@@ -2,6 +2,7 @@
 
 (require
   (for-template
+    racket/function
     racket/base
     racket/list)
 
@@ -18,7 +19,9 @@
 (define (generate-message-structure message-ids desc)
   (match-define (message-descriptor name fields) desc)
   (define ids (proto-identifiers-message (hash-ref message-ids name)))
+  (define builder-ids (proto-identifiers-builder (hash-ref message-ids name)))
   (define/with-syntax constructor (message-identifiers-constructor ids))
+  (define/with-syntax freezer (message-identifiers-freezer ids))
   (define/with-syntax (type-descriptor raw-constructor predicate accessor mutator)
     (generate-temporaries '(type-descriptor raw-constructor predicate accessor mutator)))
 
@@ -41,9 +44,33 @@
       (define (constructor)
         (raw-constructor
           #,@(for/list ([i num-fields])
-               (case (field-descriptor-multiplicity (hash-ref fields (hash-ref reverse-indices i)))
-                 [(optional) #'#f]
+               (define fd (hash-ref fields (hash-ref reverse-indices i)))
+               (case (field-descriptor-multiplicity fd)
+                 [(optional) (default-value (field-descriptor-type fd))]
                  [(repeated) #'null]))))
+
+      (define (freezer builder)
+        (raw-constructor
+          #,@(for/list ([i num-fields])
+               (define fd (hash-ref fields (hash-ref reverse-indices i)))
+               (define builder-field-identifiers (hash-ref (builder-identifiers-fields builder-ids)
+                                                           (hash-ref reverse-indices i)))
+               (define/with-syntax freeze
+                 (if (string? (field-descriptor-type fd))
+                     (message-identifiers-freezer
+                       (proto-identifiers-message
+                         (hash-ref message-ids (field-descriptor-type fd))))
+                     #'identity))
+               (define/with-syntax lift
+                 (if (eq? 'repeated (field-descriptor-multiplicity fd))
+                     #'(λ (f) (λ (l) (map f l)))
+                     #'identity))
+               (define/with-syntax field-acc
+                 (if (eq? 'repeated (field-descriptor-multiplicity fd))
+                     (builder-repeated-field-identifiers-accessor builder-field-identifiers)
+                     (builder-singular-field-identifiers-accessor builder-field-identifiers)))
+               #'((lift freeze) (field-acc builder)))))
+
       ;; TODO(endobson) Make deterministic
       #,@(for/list ([(field-number field-ids) (message-identifiers-fields ids)])
            (define field-index (hash-ref indices field-number))

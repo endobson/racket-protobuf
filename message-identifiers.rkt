@@ -12,11 +12,11 @@
 
 (struct proto-identifiers (message builder))
 
-(struct message-identifiers (constructor fields parser serializer) #:transparent)
+(struct message-identifiers (constructor fields parser serializer freezer) #:transparent)
 (struct singular-field-identifiers (accessor mutator) #:transparent)
 (struct repeated-field-identifiers (accessor adder) #:transparent)
 
-(struct builder-identifiers (constructor fields parser serializer copier freezer) #:transparent)
+(struct builder-identifiers (constructor fields parser serializer copier) #:transparent)
 (struct builder-singular-field-identifiers (accessor mutator available-predicate clearer) #:transparent)
 (struct builder-repeated-field-identifiers
         (count accessor setter adder list-adder remover clearer

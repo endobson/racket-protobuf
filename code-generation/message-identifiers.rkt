@@ -29,7 +29,8 @@
           (format-id ctx "~a-~a" name field-name)
           (format-id ctx "set-~a-~a!" name field-name))))
     (format-id ctx "parse-~a" name)
-    (format-id ctx "write-~a" name)))
+    (format-id ctx "write-~a" name)
+    (format-id ctx "freeze-~a" name)))
 
 ;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->builder-identifiers ctx md)
@@ -49,7 +50,6 @@
          ctx name field-name)))
     (format-id ctx "parse-~a-builder" name)
     (format-id ctx "write-~a-builder" name)
-    #f
     #f))
 
 

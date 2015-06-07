@@ -93,6 +93,11 @@
 
       (test-begin
         (define b (FileDescriptorProto-builder))
+        (define p (FileDescriptorProto))
+        (check-equal? (freeze-FileDescriptorProto b) p))
+
+      (test-begin
+        (define b (FileDescriptorProto-builder))
         (check-equal? (FileDescriptorProto-builder-dependency b) '())
         (FileDescriptorProto-builder-add-dependency! b "dep1")
         (check-equal? (FileDescriptorProto-builder-dependency b) '("dep1"))
