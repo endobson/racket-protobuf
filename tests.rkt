@@ -20,11 +20,7 @@
       (test-begin
         (parameterize ([current-namespace (namespace-anchor->namespace anchor)])
           (check-not-exn (lambda ()
-            (eval #'(let () (import-proto "tests/test-data/tmp.pb") (void)))))))
-      (test-begin
-        (parameterize ([current-namespace (namespace-anchor->namespace anchor)])
-          (check-not-exn (lambda ()
-            (eval #'(let () (import-proto "tests/test-data/descriptor.pb") (void))))))))
+            (eval #'(let () (import-proto "tests/test-data/foo.proto") (void))))))))
 
     (test-suite "Enums"
       (check-true (Label? 'LABEL_OPTIONAL))

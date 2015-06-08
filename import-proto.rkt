@@ -6,6 +6,7 @@
     syntax/parse
     "proto-descriptors.rkt"
     "convert-descriptors.rkt"
+    "parse-proto-file.rkt"
     "code-generation.rkt"))
 
 (provide import-proto)
@@ -15,5 +16,5 @@
     [(_ path:str)
      (generate-code #'path
        (convert-descriptors
-         (call-with-input-file* (syntax-e #'path) parse-FileDescriptorSet)))]))
+         (parse-proto-file (syntax-e #'path))))]))
 
