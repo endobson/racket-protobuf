@@ -14,7 +14,8 @@
 (define-syntax (import-proto stx)
   (syntax-parse stx
     [(_ path:str)
+     (define dir (or (current-load-relative-directory) (current-directory)))
      (generate-code #'path
        (convert-descriptors
-         (parse-proto-file (syntax-e #'path))))]))
+         (parse-proto-file (build-path dir (syntax-e #'path)))))]))
 

@@ -68,4 +68,14 @@
         (FileDescriptorProto-builder-add-dependency! b "dep1")
         (check-equal? (FileDescriptorProto-builder-dependency b) '("dep1"))
         (FileDescriptorProto-builder-add-dependency! b "dep2")
-        (check-equal? (FileDescriptorProto-builder-dependency b) '("dep1" "dep2"))))))
+        (check-equal? (FileDescriptorProto-builder-dependency b) '("dep1" "dep2"))))
+
+    (test-suite "Full-System"
+      (parameterize ([current-namespace (namespace-anchor->namespace anchor)])
+        (check-not-exn (lambda ()
+          (eval #'(let ()
+                    (import-proto "tests/test-data/foo.proto")
+                    (Bar)
+                    (Bar-v (Bar))
+                    (length (Bar-baz (Bar)))
+                    (void)))))))))

@@ -4,6 +4,7 @@
   "../message-identifiers.rkt"
   "../message-descriptor.rkt"
   racket/match
+  racket/string
   racket/syntax)
 
 (provide
@@ -19,8 +20,9 @@
 ;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->message-identifiers ctx md)
   (define name (message-descriptor-name md))
+  (define short-name (string-replace name #rx".*\\." ""))
   (message-identifiers
-    (format-id ctx "~a" name)
+    (format-id ctx "~a" short-name)
     (for/hash ([(field-number fd) (message-descriptor-fields md)])
       (match-define (field-descriptor multiplicity type field-name) fd)
       (values
@@ -28,10 +30,10 @@
         ((if (equal? 'optional multiplicity)
              singular-field-identifiers
              repeated-field-identifiers)
-          (format-id ctx "~a-~a" name field-name))))
-    (format-id ctx "parse-~a" name)
-    (format-id ctx "write-~a" name)
-    (format-id ctx "freeze-~a" name)))
+          (format-id ctx "~a-~a" short-name field-name))))
+    (format-id ctx "parse-~a" short-name)
+    (format-id ctx "write-~a" short-name)
+    (format-id ctx "freeze-~a" short-name)))
 
 ;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->builder-identifiers ctx md)
