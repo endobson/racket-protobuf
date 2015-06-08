@@ -13,9 +13,14 @@
 
 (define-syntax (import-proto stx)
   (syntax-parse stx
-    [(_ path:str)
+    [(_ #:root root-path:str path:str ...)
      (define dir (or (current-load-relative-directory) (current-directory)))
-     (generate-code #'path
+     (define root-dir (build-path dir (syntax-e #'root-path)))
+     (generate-code stx
        (convert-descriptors
-         (parse-proto-file (build-path dir (syntax-e #'path)))))]))
+         (parse-proto-file
+           root-dir
+           (map
+             (λ (p) (build-path root-dir p))
+             (syntax->datum #'(path ...))))))]))
 

@@ -20,7 +20,7 @@
       (test-begin
         (parameterize ([current-namespace (namespace-anchor->namespace anchor)])
           (check-not-exn (lambda ()
-            (eval #'(let () (import-proto "tests/test-data/foo.proto") (void))))))))
+            (eval #'(let () (import-proto #:root "tests/test-data" "foo.proto") (void))))))))
 
     (test-suite "Enums"
       (check-true (Label? 'LABEL_OPTIONAL))
@@ -74,8 +74,11 @@
       (parameterize ([current-namespace (namespace-anchor->namespace anchor)])
         (check-not-exn (lambda ()
           (eval #'(let ()
-                    (import-proto "tests/test-data/foo.proto")
+                    (import-proto #:root "tests/test-data"
+                      "foo.proto"
+                      "foo2.proto")
                     (Bar)
+                    (Foo2)
                     (Bar-v (Bar))
                     (length (Bar-baz (Bar)))
                     (void)))))))))

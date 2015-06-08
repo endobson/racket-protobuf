@@ -9,9 +9,8 @@
 
 (provide parse-proto-file)
 
-(define (parse-proto-file path)
-  (define-values (base-dir filename dir?) (split-path path))
-  (match (process* "/usr/bin/env" "protoc" path "-o" "/dev/stdout" "-I" base-dir)
+(define (parse-proto-file root-path paths)
+  (match (apply process* "/usr/bin/env" "protoc" "-o" "/dev/stdout" "-I" root-path paths)
     [(list stdout stdin pid stderr handler)
      (define parsed-output
        (delay/thread
