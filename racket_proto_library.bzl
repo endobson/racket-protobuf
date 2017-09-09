@@ -1,4 +1,4 @@
-load("@minimal_racket//:racket.bzl", "racket_compile")
+load("@minimal_racket//:racket.bzl", "racket_compile", "RacketInfo")
 
 def _racket_proto_library_aspect_impl(target, ctx):
   rkt_files = []
@@ -20,11 +20,20 @@ def _racket_proto_library_aspect_impl(target, ctx):
       }
     )
 
-    dep_zos = (ctx.attr._code_generation.racket_transitive_zos +
-       ctx.attr._convert_descriptors.racket_transitive_zos +
-       ctx.attr._proto_descriptors.racket_transitive_zos)
+    dep_zos = (ctx.attr._code_generation[RacketInfo].transitive_zos +
+       ctx.attr._convert_descriptors[RacketInfo].transitive_zos +
+       ctx.attr._proto_descriptors[RacketInfo].transitive_zos)
+    link_files = (ctx.attr._code_generation[RacketInfo].transitive_links +
+       ctx.attr._convert_descriptors[RacketInfo].transitive_links +
+       ctx.attr._proto_descriptors[RacketInfo].transitive_links)
+
     inputs = depset([rkt_file, target.proto.direct_descriptor_set]) + ctx.attr._lib_deps.files + dep_zos
-    racket_compile(ctx, rkt_file, zo_file, inputs)
+    racket_compile(
+      ctx,
+      src_file = rkt_file,
+      output_file = zo_file,
+      link_files = link_files,
+      inputs = inputs)
     rkt_files.append(rkt_file)
     zo_files.append(zo_file)
 
@@ -54,15 +63,15 @@ racket_proto_library_aspect = aspect(
     ),
     "_code_generation": attr.label(
       default="//:code-generation",
-      providers = ["racket_transitive_zos"],
+      providers = [RacketInfo],
     ),
     "_convert_descriptors": attr.label(
       default="//:convert-descriptors",
-      providers = ["racket_transitive_zos"],
+      providers = [RacketInfo],
     ),
     "_proto_descriptors": attr.label(
       default="//:proto-descriptors",
-      providers = ["racket_transitive_zos"],
+      providers = [RacketInfo],
     ),
   }
 )
