@@ -20,12 +20,8 @@ def _racket_proto_library_aspect_impl(target, ctx):
       }
     )
 
-    dep_zos = (ctx.attr._code_generation[RacketInfo].transitive_zos +
-       ctx.attr._convert_descriptors[RacketInfo].transitive_zos +
-       ctx.attr._proto_descriptors[RacketInfo].transitive_zos)
-    link_files = (ctx.attr._code_generation[RacketInfo].transitive_links +
-       ctx.attr._convert_descriptors[RacketInfo].transitive_links +
-       ctx.attr._proto_descriptors[RacketInfo].transitive_links)
+    dep_zos = (ctx.attr._proto_collection[RacketInfo].transitive_zos)
+    link_files = (ctx.attr._proto_collection[RacketInfo].transitive_links)
 
     inputs = depset([rkt_file, target.proto.direct_descriptor_set]) + ctx.attr._lib_deps.files + dep_zos
     racket_compile(
@@ -48,7 +44,7 @@ racket_proto_library_aspect = aspect(
   implementation = _racket_proto_library_aspect_impl,
   attrs = {
     "_template": attr.label(
-      default="//:test-gen.rkt",
+      default="//:proto-template.rkt",
       allow_files=True,
       single_file=True,
     ),
@@ -61,16 +57,8 @@ racket_proto_library_aspect = aspect(
     "_lib_deps": attr.label(
       default="@minimal_racket//osx/v6.10:racket-src-osx",
     ),
-    "_code_generation": attr.label(
-      default="//:code-generation",
-      providers = [RacketInfo],
-    ),
-    "_convert_descriptors": attr.label(
-      default="//:convert-descriptors",
-      providers = [RacketInfo],
-    ),
-    "_proto_descriptors": attr.label(
-      default="//:proto-descriptors",
+    "_proto_collection": attr.label(
+      default="//:protobuf",
       providers = [RacketInfo],
     ),
   }

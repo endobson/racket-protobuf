@@ -9,12 +9,14 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
-exports_files(["test-gen.rkt"])
+exports_files(["proto-template.rkt"])
 
 racket_collection(
     name = "protobuf",
     deps = [
         ":code-generation",
+        ":convert-descriptors",
+        ":proto-descriptors",
     ],
 )
 
@@ -29,7 +31,6 @@ racket_binary(
   main_module = "test-collection.rkt",
   deps = [":test-collection"],
 )
-
 
 racket_library(
     name = "code-generation",

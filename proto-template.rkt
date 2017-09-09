@@ -3,12 +3,9 @@
 (require
   (for-syntax
     racket/base
-    syntax/parse
-    racket/list
-    racket/pretty
-    "../../code-generation.rkt"
-    "../../convert-descriptors.rkt"
-    "../../proto-descriptors.rkt"))
+    protobuf/code-generation
+    protobuf/convert-descriptors
+    protobuf/proto-descriptors))
 
 
 (define-syntax (go stx)
