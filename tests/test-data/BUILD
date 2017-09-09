@@ -19,3 +19,8 @@ racket_proto_library(
   name = "foo_proto_rkt",
   deps = [":foo_proto"],
 )
+
+racket_proto_library(
+  name = "foo2_proto_rkt",
+  deps = [":foo_proto"],
+)
