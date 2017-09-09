@@ -7,6 +7,7 @@
     protobuf/convert-descriptors
     protobuf/proto-descriptors))
 
+(provide (all-defined-out))
 
 (define-syntax (go stx)
   (define out

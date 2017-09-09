@@ -23,7 +23,11 @@ racket_collection(
 racket_library(
   name = "test-collection",
   srcs = ["test-collection.rkt"],
-  deps = [":protobuf"],
+  deps = [
+    ":protobuf",
+    "//tests/test-data:foo_proto_rkt",
+    #"//tests/test-data:foo2_proto_rkt",
+  ],
 )
 
 racket_binary(

@@ -22,5 +22,5 @@ racket_proto_library(
 
 racket_proto_library(
   name = "foo2_proto_rkt",
-  deps = [":foo_proto"],
+  deps = [":foo2_proto"],
 )
