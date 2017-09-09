@@ -1,5 +1,9 @@
 load("//:racket_proto_library.bzl", "racket_proto_library")
 
+package(
+  default_visibility = ["//visibility:public"],
+)
+
 proto_library(
   name = "foo_proto",
   srcs = ["foo.proto"],

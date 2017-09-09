@@ -38,8 +38,9 @@
 ;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->builder-identifiers ctx md)
   (define name (message-descriptor-name md))
+  (define short-name (string-replace name #rx".*\\." ""))
   (builder-identifiers
-    (format-id ctx "~a-builder" name)
+    (format-id ctx "~a-builder" short-name)
     (for/hash ([(field-number fd) (message-descriptor-fields md)])
       (match-define (field-descriptor multiplicity type field-name) fd)
       (define (format fmt . args)
@@ -50,9 +51,9 @@
         ((case multiplicity
            [(optional) make-builder-singular-field-identifiers]
            [(repeated) make-builder-repeated-field-identifiers])
-         ctx name field-name)))
-    (format-id ctx "parse-~a-builder" name)
-    (format-id ctx "write-~a-builder" name)
+         ctx short-name field-name)))
+    (format-id ctx "parse-~a-builder" short-name)
+    (format-id ctx "write-~a-builder" short-name)
     #f))
 
 

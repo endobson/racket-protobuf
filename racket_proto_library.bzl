@@ -1,20 +1,70 @@
+load("@minimal_racket//:racket.bzl", "racket_compile")
+
 def _racket_proto_library_aspect_impl(target, ctx):
   rkt_files = []
+  zo_files = []
   for proto_file in target.proto.direct_sources:
     rkt_file = ctx.actions.declare_file(
       proto_file.basename + ".rkt",
       sibling = proto_file
     )
-    ctx.actions.write(
-      output = rkt_file,
-      content = "#lang racket/base\n"
+    zo_file = ctx.actions.declare_file(
+      "compiled/" + proto_file.basename + "_rkt.zo",
+      sibling = proto_file
     )
-    rkt_files.append(rkt_file)
+    ctx.actions.expand_template(
+      template = ctx.file._template,
+      output = rkt_file,
+      substitutions = {
+        "{DESCRIPTOR}": target.proto.direct_descriptor_set.path
+      }
+    )
 
-  return []
+    dep_zos = (ctx.attr._code_generation.racket_transitive_zos +
+       ctx.attr._convert_descriptors.racket_transitive_zos +
+       ctx.attr._proto_descriptors.racket_transitive_zos)
+    inputs = depset([rkt_file, target.proto.direct_descriptor_set]) + ctx.attr._lib_deps.files + dep_zos
+    racket_compile(ctx, rkt_file, zo_file, inputs)
+    rkt_files.append(rkt_file)
+    zo_files.append(zo_file)
+
+  return [
+    OutputGroupInfo(
+      racket_proto = rkt_files,
+      racket_proto_zo = zo_files
+    )
+  ]
 
 racket_proto_library_aspect = aspect(
   implementation = _racket_proto_library_aspect_impl,
+  attrs = {
+    "_template": attr.label(
+      default="//:test-gen.rkt",
+      allow_files=True,
+      single_file=True,
+    ),
+    "_racket_bin": attr.label(
+      default="@minimal_racket//osx/v6.10:bin/racket",
+      allow_files=True,
+      executable=True,
+      cfg="host",
+    ),
+    "_lib_deps": attr.label(
+      default="@minimal_racket//osx/v6.10:racket-src-osx",
+    ),
+    "_code_generation": attr.label(
+      default="//:code-generation",
+      providers = ["racket_transitive_zos"],
+    ),
+    "_convert_descriptors": attr.label(
+      default="//:convert-descriptors",
+      providers = ["racket_transitive_zos"],
+    ),
+    "_proto_descriptors": attr.label(
+      default="//:proto-descriptors",
+      providers = ["racket_transitive_zos"],
+    ),
+  }
 )
 
 def _racket_proto_library_impl(ctx):
@@ -22,6 +72,20 @@ def _racket_proto_library_impl(ctx):
      outputs = [ctx.outputs.rkt],
      command = "touch " + ctx.outputs.rkt.path
   )
+
+  rkt_files = depset()
+  zo_files = depset()
+  for dep in ctx.attr.deps:
+    rkt_files += dep[OutputGroupInfo].racket_proto
+    zo_files += dep[OutputGroupInfo].racket_proto_zo
+  
+
+  return [
+    OutputGroupInfo(
+      racket_proto = rkt_files,
+      racket_proto_zo = zo_files,
+    )
+  ]
 
 racket_proto_library = rule(
   implementation = _racket_proto_library_impl,
@@ -32,7 +96,7 @@ racket_proto_library = rule(
     "deps": attr.label_list(
       providers = ["proto"],
       aspects = [racket_proto_library_aspect]
-    )
+    ),
   }
 )
 

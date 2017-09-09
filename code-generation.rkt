@@ -13,7 +13,8 @@
 
 ;; This generates the code given a list of message descriptors.
 ;; ctx: syntax? The lexical context for generated identifiers.
-;; mds: (listof message-descriptor?) The messages to generate code for.
+;; descirptors: (listof (or/c message-descriptor? enum-descriptor?)
+;;   The messages to generate code for.
 (define (generate-code ctx descriptors)
   (define mds (filter message-descriptor? descriptors))
   (define eds (filter enum-descriptor? descriptors))

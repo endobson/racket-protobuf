@@ -92,3 +92,25 @@ racket_library(
 #     ":proto-reader",
 #   ],
 # )
+
+
+racket_library(
+  name = "test-gen",
+  srcs = ["test-gen.rkt"],
+  deps = [
+    ":proto-descriptors",
+    ":convert-descriptors",
+    ":code-generation",
+  ],
+  compile_data = [
+    "//tests/test-data:foo_proto"
+  ]
+)
+
+racket_binary(
+  name = "test-gen-bin",
+  main_module = "test-gen.rkt",
+  deps = [
+    ":test-gen",
+  ],
+)
