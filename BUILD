@@ -26,7 +26,7 @@ racket_library(
   deps = [
     ":protobuf",
     "//tests/test-data:foo_proto_rkt",
-    #"//tests/test-data:foo2_proto_rkt",
+    "//tests/test-data:foo2_proto_rkt",
   ],
 )
 

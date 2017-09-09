@@ -31,7 +31,9 @@
     (string-append container-name "." (DescriptorProto-name message-type)))
   (define self
     (message-descriptor
-      message-name
+      (string->immutable-string message-name)
+
+      ;; TODO once string fields of protos are immutable, remove the string->immutable-string conversions
       (for/hash ([field (DescriptorProto-field message-type)])
         (values
           (FieldDescriptorProto-number field)
@@ -50,10 +52,10 @@
               ['TYPE_UINT64 'bytes]
               ['TYPE_DOUBLE 'bytes]
               ['TYPE_MESSAGE
-               (list 'message (FieldDescriptorProto-type_name field))]
+               (list 'message (string->immutable-string (FieldDescriptorProto-type_name field)))]
               ['TYPE_ENUM
-               (list 'enum (FieldDescriptorProto-type_name field))])
-            (FieldDescriptorProto-name field))))))
+               (list 'enum (string->immutable-string (FieldDescriptorProto-type_name field)))])
+            (string->immutable-string (FieldDescriptorProto-name field)))))))
   (list
     self
     (map (convert-enum-type message-name) (DescriptorProto-enum_type message-type))

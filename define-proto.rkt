@@ -31,14 +31,14 @@
         (field-descriptor
           (syntax-e (attribute multiplicity))
           (attribute type.value)
-          (symbol->string (syntax-e (attribute name))))])
+          (string->immutable-string (symbol->string (syntax-e (attribute name)))))])
 
   (define-syntax-class enum-value-spec
     #:attributes (descriptor)
     [pattern (name:id (~datum =) number:integer)
       #:attr descriptor 
         (enum-value-descriptor
-          (symbol->string (syntax-e (attribute name)))
+          (string->immutable-string (symbol->string (syntax-e (attribute name))))
           (syntax-e (attribute number)))])
 
   (define-syntax-class message-spec
@@ -47,8 +47,10 @@
       #:attr descriptor
         (message-descriptor
           (syntax-e (attribute name))
-          (make-hash
-            (map cons (attribute fields.number) (attribute fields.descriptor))))]
+          (make-immutable-hash
+            (map cons
+              (map syntax-e (attribute fields.number))
+              (attribute fields.descriptor))))]
     [pattern ((~datum enum) name:str values:enum-value-spec ...)
       #:attr descriptor
         (enum-descriptor

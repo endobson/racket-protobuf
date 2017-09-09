@@ -1,23 +1,27 @@
 #lang racket/base
 
+(require
+  racket/contract)
 
 (provide
-  (struct-out message-descriptor)
-  (struct-out field-descriptor)
-  (struct-out enum-descriptor)
-  (struct-out enum-value-descriptor))
+  (contract-out
+    (struct message-descriptor
+            ([name immutable-string/c]
+             [fields (hash/c exact-positive-integer? field-descriptor? #:immutable #t)]))
+    (struct field-descriptor
+            ([multiplicity (or/c 'optional 'repeated)]
+             [type (or/c 'int32 'string 'bytes 'boolean (list/c (or/c 'enum 'message) immutable-string/c))]
+             [name immutable-string/c]))
+    (struct enum-descriptor
+            ([name immutable-string/c]
+             [values (listof enum-value-descriptor?)]))
+    (struct enum-value-descriptor
+            ([name immutable-string/c]
+             [value exact-integer?]))))
 
-;; name: string?
-;; fields: (hash/c exact-positive-integer? field-descriptor?)
+(define immutable-string/c (and/c immutable? string?))
+
 (struct message-descriptor (name fields) #:transparent)
-;; multiplicity: (or/c 'optional 'repeated)
-;; type: (or/c 'int32 'string 'bytes 'boolean (list/c (or/c 'enum 'message) string?))
-;; name: string?
 (struct field-descriptor (multiplicity type name) #:transparent)
-
-;; name: string?
-;; values: (listof enum-value-descriptor?)
 (struct enum-descriptor (name values) #:transparent)
-;; name: string?
-;; value: integer?
 (struct enum-value-descriptor (name value) #:transparent)
