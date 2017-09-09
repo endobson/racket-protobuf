@@ -2,11 +2,10 @@ syntax = "proto3";
 package com.endobson;
 
 message Bar {
-  optional int32 v = 1;
+  int32 v = 1;
   repeated Baz baz = 2;
 }
 
-
 message Baz {
-  optional Bar bar = 1;
+  Bar bar = 1;
 }

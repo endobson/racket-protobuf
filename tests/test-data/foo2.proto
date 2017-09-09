@@ -1,8 +1,8 @@
 syntax = "proto3";
 package com.endobson;
 
-import "foo.proto";
+import "tests/test-data/foo.proto";
 
 message Foo2 {
-  optional Bar bar = 1;
+  Bar bar = 1;
 }

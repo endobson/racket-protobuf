@@ -10,3 +10,9 @@ http_archive(
 load("@minimal_racket//:releases.bzl", "racket_releases")
 racket_releases()
 
+http_archive(
+  name = "com_google_protobuf",
+  sha256 = "8b3a82704fbf5202c3bcfbbe6b2eb4d07d85bcb507876aaf60edff751c821854",
+  strip_prefix = "protobuf-hack-wkt",
+  urls = ["https://github.com/endobson/protobuf/archive/hack-wkt.tar.gz"]
+)
