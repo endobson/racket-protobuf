@@ -35,9 +35,7 @@ def _racket_proto_library_aspect_impl(target, ctx):
       content = "((\"protogen\" \"racket_protogen\"))",
     )
 
-
-    inputs = (depset([rkt_file, target.proto.direct_descriptor_set]) + ctx.attr._lib_deps.files +
-              dep_zos + dep_links)
+    inputs = depset([rkt_file, target.proto.direct_descriptor_set]) + dep_zos + dep_links
     racket_compile(
       ctx,
       src_file = rkt_file,
@@ -70,12 +68,16 @@ racket_proto_library_aspect = aspect(
       executable=True,
       cfg="host",
     ),
-    "_lib_deps": attr.label(
+    "_core_racket": attr.label(
       default="@minimal_racket//osx/v6.10:racket-src-osx",
     ),
     "_proto_collection": attr.label(
       default="//:protobuf",
       providers = [RacketInfo],
+    ),
+    "_bazel_tools": attr.label(
+      default=Label("@minimal_racket//build_rules:bazel-tools"),
+      cfg="host",
     ),
   },
   attr_aspects = ["deps"]
