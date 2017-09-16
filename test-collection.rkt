@@ -2,8 +2,8 @@
 
 (require protobuf/code-generation)
 (require protogen/tests/test-data/foo-proto)
+(require protogen/tests/test-data/foo2-proto)
 
-
-(displayln "hello world")
 
 (Bar)
+(Foo2)

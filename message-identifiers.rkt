@@ -23,4 +23,4 @@
         (count accessor setter adder list-adder remover clearer
                index-builder-accessor list-builder-accessor builder-adder) #:transparent)
 
-(struct enum-identifiers (predicate list enum->number number->enum))
+(struct enum-identifiers (predicate list enum->number number->enum) #:transparent)

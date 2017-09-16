@@ -61,6 +61,8 @@
 (define-syntax (define-proto stx)
   (syntax-parse stx
     [(_ messages:message-spec ...)
-     (generate-code stx (attribute messages.descriptor))]))
+     (define descriptors (attribute messages.descriptor))
+     (define ids (make-type-identifier-dict stx descriptors))
+     (generate-code ids descriptors)]))
 
 

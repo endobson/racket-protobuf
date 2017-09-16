@@ -2,45 +2,47 @@
 
 (require
   (for-template racket/base)
+  racket/contract
 
   "code-generation/parser.rkt"
   "code-generation/structure.rkt"
   "code-generation/enum.rkt"
   "code-generation/message-identifiers.rkt"
+  "message-identifiers.rkt"
   "message-descriptor.rkt")
 
-(provide generate-code)
+(provide 
+  (contract-out
+    [generate-code (-> (hash/c string? (or/c proto-identifiers? enum-identifiers?))
+                       (listof (or/c message-descriptor? enum-descriptor?))
+                       syntax?)]
+    [make-type-identifier-dict
+      (-> syntax?
+          (listof (or/c message-descriptor? enum-descriptor?))
+          (hash/c string? (or/c proto-identifiers? enum-identifiers?)))]))
 
 ;; This generates the code given a list of message descriptors.
-;; ctx: syntax? The lexical context for generated identifiers.
-;; descirptors: (listof (or/c message-descriptor? enum-descriptor?)
-;;   The messages to generate code for.
-(define (generate-code ctx descriptors)
+(define (generate-code ids descriptors)
   (define mds (filter message-descriptor? descriptors))
   (define eds (filter enum-descriptor? descriptors))
-  (define pids
-    (for/hash ([md (in-list mds)])
-      (values
-        (message-descriptor-name md)
-        (message-descriptor->proto-identifiers ctx md))))
-  (define eids
-    (for/hash ([ed (in-list eds)])
-      (values
-        (enum-descriptor-name ed)
-        (enum-descriptor->enum-identifiers ctx ed))))
-
 
   #`(begin
       #,@(for/list ([md (in-list mds)])
            #`(begin
-               #,(generate-message-structure pids eids md)
-               #,(generate-builder-structure pids eids md)
-               #,(generate-parser pids eids md)))
+               #,(generate-message-structure ids ids md)
+               #,(generate-builder-structure ids ids md)
+               #,(generate-parser ids ids md)))
       #,@(for/list ([ed (in-list eds)])
-           (generate-enum (hash-ref eids (enum-descriptor-name ed)) ed))))
+           (generate-enum (hash-ref ids (enum-descriptor-name ed)) ed))))
 
-
-
-
-
-
+(define (make-type-identifier-dict ctx descriptors)
+  (for/hash ([desc (in-list descriptors)])
+    (cond
+      [(message-descriptor? desc)
+       (values
+         (message-descriptor-name desc)
+         (message-descriptor->proto-identifiers ctx desc))]
+      [(enum-descriptor? desc)
+       (values
+         (enum-descriptor-name desc)
+         (enum-descriptor->enum-identifiers ctx desc))])))
