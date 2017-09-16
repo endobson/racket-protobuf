@@ -4,6 +4,10 @@ package com.endobson;
 message Bar {
   int32 v = 1;
   repeated Baz baz = 2;
+
+  message Baz2 {
+    Bar bar = 1;
+  }
 }
 
 message Baz {

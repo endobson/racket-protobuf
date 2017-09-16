@@ -5,4 +5,5 @@ import "tests/test-data/foo.proto";
 
 message Foo2 {
   Bar bar = 1;
+  repeated Bar.Baz2 baz = 2;
 }

@@ -3,6 +3,9 @@ load("@minimal_racket//:racket.bzl", "racket_compile", "RacketInfo")
 def _racket_proto_library_aspect_impl(target, ctx):
   dep_zos = (ctx.attr._proto_collection[RacketInfo].transitive_zos)
   dep_links = (ctx.attr._proto_collection[RacketInfo].transitive_links)
+  for dep in ctx.rule.attr.deps:
+    dep_zos += dep[RacketInfo].transitive_zos
+    dep_links += dep[RacketInfo].transitive_links
 
   zo_files = []
   link_files = []
@@ -74,7 +77,8 @@ racket_proto_library_aspect = aspect(
       default="//:protobuf",
       providers = [RacketInfo],
     ),
-  }
+  },
+  attr_aspects = ["deps"]
 )
 
 def _racket_proto_library_impl(ctx):

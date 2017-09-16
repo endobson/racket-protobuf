@@ -25,3 +25,4 @@
 (struct field-descriptor (multiplicity type name) #:transparent)
 (struct enum-descriptor (name values) #:transparent)
 (struct enum-value-descriptor (name value) #:transparent)
+(struct type-name (package local-name))
