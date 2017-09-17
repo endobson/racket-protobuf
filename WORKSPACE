@@ -21,3 +21,11 @@ http_archive(
   strip_prefix = "protobuf-hack-wkt",
   urls = ["https://github.com/endobson/protobuf/archive/hack-wkt.tar.gz"]
 )
+
+new_http_archive(
+  name = "googleapis",
+  sha256 = "0421e89b76a6fa6f820c39ad365a5e490873ae4c7509c8a53f42671f1e53e1e8",
+  urls = ["https://github.com/googleapis/googleapis/archive/220c359ac969c6bbab7a11077b32de2533cc7bad.tar.gz"],
+  strip_prefix = "googleapis-220c359ac969c6bbab7a11077b32de2533cc7bad",
+  build_file = "BUILD.googleapis",
+)

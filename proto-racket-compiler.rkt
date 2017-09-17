@@ -31,6 +31,7 @@
     (cons #f (map (lambda (p) (build-path cwd p)) links)))
   
   (define compile (compile-zos #f #:module? #t))
+  (define count 0)
 
   (define file-descriptor-set
     (call-with-input-file file-descriptor-arg
@@ -43,5 +44,6 @@
       (regexp-replace
         #rx".proto$"
         (path->string (build-path bin-dir-arg full-proto-file-name)) "-proto.rkt"))
+    (define output-dir (build-path output-dir-arg dir-name "compiled"))
 
-    (compile (list source-path) (build-path output-dir-arg dir-name "compiled"))))
+    (compile (list source-path) output-dir)))

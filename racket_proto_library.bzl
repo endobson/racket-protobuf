@@ -9,55 +9,52 @@ def _racket_proto_library_aspect_impl(target, ctx):
 
   rkt_files = []
   zo_files = []
-  link_files = []
+
+  link_file = ctx.actions.declare_file(
+    ctx.label.name + "_links.rktd",
+  )
+  ctx.actions.write(
+    output = link_file,
+    content = "((\"protogen\" \"racket_protogen\"))",
+  )
+
+
   for proto_file in target.proto.direct_sources:
     basename = proto_file.basename[:-len(".proto")]
     rkt_file = ctx.actions.declare_file(
       basename + "-proto.rkt",
       sibling = proto_file
     )
+    if (proto_file.short_path.startswith("../")):
+      proto_file_local_path = proto_file.short_path[proto_file.short_path.index("/",3)+1:]
+    else:
+      proto_file_local_path = proto_file.short_path
+    proto_file_fixed_dirname = proto_file_local_path[0:proto_file_local_path.rindex("/")]
+
     zo_file = ctx.actions.declare_file(
-      "racket_protogen/" + proto_file.dirname + "/compiled/" + basename + "-proto_rkt.zo",
-      sibling = proto_file
+      "racket_protogen/" + proto_file_fixed_dirname + "/compiled/" + basename + "-proto_rkt.zo",
     )
+
     ctx.actions.expand_template(
       template = ctx.file._template,
       output = rkt_file,
       substitutions = {
         "{DESCRIPTOR}": target.proto.direct_descriptor_set.path,
-        "{SOURCE_PATH}": proto_file.short_path
+        "{SOURCE_PATH}": proto_file_local_path
       }
     )
 
-    link_file = ctx.actions.declare_file(
-      basename + "-proto_links.rktd",
-      sibling = proto_file
-    )
-    ctx.actions.write(
-      output = link_file,
-      content = "((\"protogen\" \"racket_protogen\"))",
-    )
-
-    # inputs = depset([rkt_file, target.proto.direct_descriptor_set]) + dep_zos + dep_links
-    # racket_compile(
-    #   ctx,
-    #   src_file = rkt_file,
-    #   output_file = zo_file,
-    #   link_files = dep_links,
-    #   inputs = inputs)
-
     rkt_files.append(rkt_file)
     zo_files.append(zo_file)
-    link_files.append(link_file)
  
-  transitive_links = dep_links + link_files
+  transitive_links = dep_links + [link_file]
 
   arguments = []
   arguments += ["--links", 
                 "(" + " ".join(['"%s"' % link_file.path for link_file
                                 in transitive_links.to_list()]) + ")"]
   arguments += ["--file_descriptor", target.proto.direct_descriptor_set.path]
-  arguments += ["--bin_dir", ctx.bin_dir.path]
+  arguments += ["--bin_dir", ctx.bin_dir.path + "/" + ctx.label.workspace_root]
   arguments += ["--output_dir",
                 ctx.bin_dir.path + "/" + ctx.build_file_path[:-len("/BUILD")] + "/racket_protogen"]
 

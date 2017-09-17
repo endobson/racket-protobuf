@@ -111,7 +111,13 @@
          #f ;(syntax-local-introduce index-builder-accessor)
          #f ;(syntax-local-introduce list-builder-accessor)
          #f ;(syntax-local-introduce builder-adder)
-         )]))
+         )]
+      [(enum-identifiers predicate list enum->number number->enum)
+       (enum-identifiers
+         (syntax-local-introduce predicate)
+         (syntax-local-introduce list)
+         (syntax-local-introduce enum->number)
+         (syntax-local-introduce number->enum))]))
 
   (define introduced-ids
     (for/hash ([(k v) (in-hash imported-ids)])

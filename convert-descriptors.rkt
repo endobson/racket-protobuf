@@ -9,18 +9,24 @@
 (provide convert-file-descriptor)
 
 (define (convert-file-descriptor file-descriptor)
+  (define package-name (string-append "." (FileDescriptorProto-package file-descriptor)))
   (flatten
-    (map
-      (convert-message-type (string-append "." (FileDescriptorProto-package file-descriptor)))
-      (FileDescriptorProto-message_type file-descriptor))))
+    (list
+      (map
+        (convert-message-type package-name)
+        (FileDescriptorProto-message_type file-descriptor))
+      (map
+        (convert-enum-type package-name)
+        (FileDescriptorProto-enum_type file-descriptor)))))
 
 
 (define ((convert-enum-type container-name) enum-type)
   (enum-descriptor
-    (string-append container-name "." (EnumDescriptorProto-name enum-type))
+    (string->immutable-string
+      (string-append container-name "." (EnumDescriptorProto-name enum-type)))
     (for/list ([value (EnumDescriptorProto-value enum-type)])
       (enum-value-descriptor
-        (EnumValueDescriptorProto-name value)
+        (string->immutable-string (EnumValueDescriptorProto-name value))
         (EnumValueDescriptorProto-number value)))))
 
 
@@ -46,9 +52,11 @@
               ['TYPE_BOOL 'boolean]
               ['TYPE_INT32 'int32]
               ;; TODO handle the following types correctly
+              ['TYPE_UINT32 'bytes]
               ['TYPE_INT64 'bytes]
               ['TYPE_UINT64 'bytes]
               ['TYPE_DOUBLE 'bytes]
+              ['TYPE_FLOAT 'bytes]
               ['TYPE_MESSAGE
                (list 'message (string->immutable-string (FieldDescriptorProto-type_name field)))]
               ['TYPE_ENUM
