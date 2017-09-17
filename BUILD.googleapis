@@ -1,0 +1,80 @@
+#load("@bes_example//:grpc.bzl", "grpc_cc_library")
+
+proto_library(
+  name = "build_event_service",
+  srcs = [
+    "google/devtools/build/v1/build_status.proto",
+    "google/devtools/build/v1/build_events.proto",
+    "google/devtools/build/v1/publish_build_event.proto",
+  ],
+  deps = [
+    "@com_google_protobuf//:well_known_types_protos",
+    ":annotations",
+    ":rpc_status",
+  ],
+  visibility = ["//visibility:public"],
+)
+
+# grpc_cc_library(
+#   name = "build_event_service_grpc_cc_files",
+#   proto_srcs = [
+#     "google/devtools/build/v1/build_status.proto",
+#     "google/devtools/build/v1/build_events.proto",
+#     "google/devtools/build/v1/publish_build_event.proto",
+#   ],
+#   srcs = [":build_event_service"],
+# )
+
+# cc_proto_library(
+#   name = "build_event_service_cc",
+#   deps = [":build_event_service"]
+# )
+
+#cc_library(
+#  name = "build_event_service_grpc_cc",
+#  hdrs = [
+#    "google/devtools/build/v1/build_status.grpc.pb.h",
+#    "google/devtools/build/v1/build_events.grpc.pb.h",
+#    "google/devtools/build/v1/publish_build_event.grpc.pb.h",
+#  ],
+#  srcs = [
+#    "google/devtools/build/v1/build_status.grpc.pb.cc",
+#    "google/devtools/build/v1/build_events.grpc.pb.cc",
+#    "google/devtools/build/v1/publish_build_event.grpc.pb.cc",
+#  ],
+#  deps = [
+#    ":build_event_service_cc",
+#    "@grpc//:grpc++",
+#  ],
+#  visibility = ["//visibility:public"],
+#)
+
+
+proto_library(
+  name = "http",
+  srcs = [
+    "google/api/http.proto",
+  ],
+  visibility = ["//visibility:public"],
+)
+
+proto_library(
+  name = "annotations",
+  srcs = [
+    "google/api/annotations.proto",
+  ],
+  deps = [
+    "@com_google_protobuf//:well_known_types_protos",
+    ":http"
+  ]
+)
+
+proto_library(
+  name = "rpc_status",
+  srcs = [
+    "google/rpc/status.proto",
+  ],
+  deps = [
+    "@com_google_protobuf//:well_known_types_protos",
+  ]
+)

@@ -56,7 +56,8 @@ def _racket_proto_library_aspect_impl(target, ctx):
   arguments += ["--file_descriptor", target.proto.direct_descriptor_set.path]
   arguments += ["--bin_dir", ctx.bin_dir.path + "/" + ctx.label.workspace_root]
   arguments += ["--output_dir",
-                ctx.bin_dir.path + "/" + ctx.build_file_path[:-len("/BUILD")] + "/racket_protogen"]
+                ctx.bin_dir.path + "/" +
+                ctx.build_file_path[:ctx.build_file_path.rindex("/")] + "/racket_protogen"]
 
 
   
