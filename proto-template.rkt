@@ -29,11 +29,11 @@
         #`'#,(port->bytes port))))
   (define source-path "{SOURCE_PATH}")
   (define raw-descriptor (gen-raw-descriptor))
-  (define file-descriptor-set (parse-FileDescriptorSet (open-input-bytes raw-descriptor)))
+  (define file-descriptor-set (parse-file-descriptor-set (open-input-bytes raw-descriptor)))
   (define file-descriptor
     (or
-      (findf (lambda (desc) (equal? source-path (FileDescriptorProto-name desc)))
-             (FileDescriptorSet-file file-descriptor-set))
+      (findf (lambda (desc) (equal? source-path (file-descriptor-proto-name desc)))
+             (file-descriptor-set-file file-descriptor-set))
       (error 'proto-template "No descriptor for ~a." source-path)))
   (define defined-descriptors (convert-file-descriptor file-descriptor))
   (define defined-type-ids (make-type-identifier-dict #'here defined-descriptors)))
@@ -47,8 +47,8 @@
     [(_ imported-ids)
      (let ()
        (define-values (ids requires)
-         (for/lists (ids requires) ([dependency (in-list (FileDescriptorProto-dependency
-                                                           file-descriptor))])
+         (for/lists (ids requires)
+                    ([dependency (in-list (file-descriptor-proto-dependency file-descriptor))])
            (define lib-name
              (string-append
                "protogen/"

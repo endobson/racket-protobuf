@@ -36,9 +36,9 @@
   (define file-descriptor-set
     (call-with-input-file file-descriptor-arg
       (lambda (port)
-        (parse-FileDescriptorSet port))))
-  (for ([file (in-list (FileDescriptorSet-file file-descriptor-set))])
-    (define full-proto-file-name (FileDescriptorProto-name file))
+        (parse-file-descriptor-set port))))
+  (for ([file (in-list (file-descriptor-set-file file-descriptor-set))])
+    (define full-proto-file-name (file-descriptor-proto-name file))
     (define-values (dir-name proto-file-name must-dir?) (split-path full-proto-file-name))
     (define source-path
       (regexp-replace

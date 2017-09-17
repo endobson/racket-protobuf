@@ -7,7 +7,7 @@
 (require protogen/google/devtools/build/v1/build_events-proto)
 
 
-(Bar)
-(Foo2)
-(Any)
-(BuildEvent)
+(make-bar)
+(make-foo2)
+(make-any)
+(make-build-event)

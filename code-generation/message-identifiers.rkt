@@ -4,6 +4,7 @@
   "../message-identifiers.rkt"
   "../message-descriptor.rkt"
   racket/match
+  racket/list
   racket/string
   racket/syntax)
 
@@ -16,13 +17,25 @@
     (message-descriptor->message-identifiers ctx md)
     (message-descriptor->builder-identifiers ctx md)))
 
+(define (camel-case->kebab-case s)
+  (unless (regexp-match? #rx"([A-Z][a-z0-9]*)+" s)
+    (error 'camel-case->kebab-case "Input is not CamelCase: ~s" s))
+  (string-join
+    (map
+      (lambda (pair)
+        (string-append
+          (string-downcase (first pair))
+          (second pair)))
+      (regexp-match* #rx"([A-Z])([a-z0-9]*)" s #:match-select rest))
+    "-"))
+
 
 ;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->message-identifiers ctx md)
   (define name (message-descriptor-name md))
-  (define short-name (string-replace name #rx".*\\." ""))
+  (define kebab-name (camel-case->kebab-case (string-replace name #rx".*\\." "")))
   (message-identifiers
-    (format-id ctx "~a" short-name)
+    (format-id ctx "make-~a" kebab-name)
     (for/hash ([(field-number fd) (message-descriptor-fields md)])
       (match-define (field-descriptor multiplicity type field-name) fd)
       (values
@@ -30,10 +43,10 @@
         ((if (equal? 'optional multiplicity)
              singular-field-identifiers
              repeated-field-identifiers)
-          (format-id ctx "~a-~a" short-name field-name))))
-    (format-id ctx "parse-~a" short-name)
-    (format-id ctx "write-~a" short-name)
-    (format-id ctx "freeze-~a" short-name)))
+          (format-id ctx "~a-~a" kebab-name field-name))))
+    (format-id ctx "parse-~a" kebab-name)
+    (format-id ctx "write-~a" kebab-name)
+    (format-id ctx "freeze-~a" kebab-name)))
 
 ;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->builder-identifiers ctx md)

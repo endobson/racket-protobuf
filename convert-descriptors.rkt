@@ -9,44 +9,44 @@
 (provide convert-file-descriptor)
 
 (define (convert-file-descriptor file-descriptor)
-  (define package-name (string-append "." (FileDescriptorProto-package file-descriptor)))
+  (define package-name (string-append "." (file-descriptor-proto-package file-descriptor)))
   (flatten
     (list
       (map
         (convert-message-type package-name)
-        (FileDescriptorProto-message_type file-descriptor))
+        (file-descriptor-proto-message_type file-descriptor))
       (map
         (convert-enum-type package-name)
-        (FileDescriptorProto-enum_type file-descriptor)))))
+        (file-descriptor-proto-enum_type file-descriptor)))))
 
 
 (define ((convert-enum-type container-name) enum-type)
   (enum-descriptor
     (string->immutable-string
-      (string-append container-name "." (EnumDescriptorProto-name enum-type)))
-    (for/list ([value (EnumDescriptorProto-value enum-type)])
+      (string-append container-name "." (enum-descriptor-proto-name enum-type)))
+    (for/list ([value (enum-descriptor-proto-value enum-type)])
       (enum-value-descriptor
-        (string->immutable-string (EnumValueDescriptorProto-name value))
-        (EnumValueDescriptorProto-number value)))))
+        (string->immutable-string (enum-value-descriptor-proto-name value))
+        (enum-value-descriptor-proto-number value)))))
 
 
 (define ((convert-message-type container-name) message-type)
   (define message-name
-    (string-append container-name "." (DescriptorProto-name message-type)))
+    (string-append container-name "." (descriptor-proto-name message-type)))
   (define self
     (message-descriptor
       (string->immutable-string message-name)
 
       ;; TODO once string fields of protos are immutable, remove the string->immutable-string conversions
-      (for/hash ([field (DescriptorProto-field message-type)])
+      (for/hash ([field (descriptor-proto-field message-type)])
         (values
-          (FieldDescriptorProto-number field)
+          (field-descriptor-proto-number field)
           (field-descriptor
-            (match (FieldDescriptorProto-label field)
+            (match (field-descriptor-proto-label field)
               ['LABEL_OPTIONAL 'optional]
               ['LABEL_REQUIRED 'optional] ;; Required fields are not supported
               ['LABEL_REPEATED 'repeated])
-            (match (FieldDescriptorProto-type field)
+            (match (field-descriptor-proto-type field)
               ['TYPE_STRING 'string]
               ['TYPE_BYTES 'bytes]
               ['TYPE_BOOL 'boolean]
@@ -58,12 +58,12 @@
               ['TYPE_DOUBLE 'bytes]
               ['TYPE_FLOAT 'bytes]
               ['TYPE_MESSAGE
-               (list 'message (string->immutable-string (FieldDescriptorProto-type_name field)))]
+               (list 'message (string->immutable-string (field-descriptor-proto-type_name field)))]
               ['TYPE_ENUM
-               (list 'enum (string->immutable-string (FieldDescriptorProto-type_name field)))])
-            (string->immutable-string (FieldDescriptorProto-name field)))))))
+               (list 'enum (string->immutable-string (field-descriptor-proto-type_name field)))])
+            (string->immutable-string (field-descriptor-proto-name field)))))))
   (list
     self
-    (map (convert-enum-type message-name) (DescriptorProto-enum_type message-type))
-    (map (convert-message-type message-name) (DescriptorProto-nested_type message-type))))
+    (map (convert-enum-type message-name) (descriptor-proto-enum_type message-type))
+    (map (convert-message-type message-name) (descriptor-proto-nested_type message-type))))
 
