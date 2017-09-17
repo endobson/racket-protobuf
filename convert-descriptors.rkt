@@ -14,10 +14,10 @@
     (list
       (map
         (convert-message-type package-name)
-        (file-descriptor-proto-message_type file-descriptor))
+        (file-descriptor-proto-message-type file-descriptor))
       (map
         (convert-enum-type package-name)
-        (file-descriptor-proto-enum_type file-descriptor)))))
+        (file-descriptor-proto-enum-type file-descriptor)))))
 
 
 (define ((convert-enum-type container-name) enum-type)
@@ -58,12 +58,12 @@
               ['TYPE_DOUBLE 'bytes]
               ['TYPE_FLOAT 'bytes]
               ['TYPE_MESSAGE
-               (list 'message (string->immutable-string (field-descriptor-proto-type_name field)))]
+               (list 'message (string->immutable-string (field-descriptor-proto-type-name field)))]
               ['TYPE_ENUM
-               (list 'enum (string->immutable-string (field-descriptor-proto-type_name field)))])
+               (list 'enum (string->immutable-string (field-descriptor-proto-type-name field)))])
             (string->immutable-string (field-descriptor-proto-name field)))))))
   (list
     self
-    (map (convert-enum-type message-name) (descriptor-proto-enum_type message-type))
-    (map (convert-message-type message-name) (descriptor-proto-nested_type message-type))))
+    (map (convert-enum-type message-name) (descriptor-proto-enum-type message-type))
+    (map (convert-message-type message-name) (descriptor-proto-nested-type message-type))))
 

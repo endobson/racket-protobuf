@@ -29,8 +29,11 @@
       (regexp-match* #rx"([A-Z])([a-z0-9]*)" s #:match-select rest))
     "-"))
 
+(define (snake-case->kebab-case s)
+  (unless (regexp-match? #rx"([a-z0-9]+)(_[a-z0-9]+)*" s)
+    (error 'snake-case->kebab-case "Input is not snake_case: ~s" s))
+  (string-join (string-split s "_") "-"))
 
-;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->message-identifiers ctx md)
   (define name (message-descriptor-name md))
   (define kebab-name (camel-case->kebab-case (string-replace name #rx".*\\." "")))
@@ -38,24 +41,25 @@
     (format-id ctx "make-~a" kebab-name)
     (for/hash ([(field-number fd) (message-descriptor-fields md)])
       (match-define (field-descriptor multiplicity type field-name) fd)
+      (define kebab-field-name (snake-case->kebab-case field-name))
       (values
         field-number
         ((if (equal? 'optional multiplicity)
              singular-field-identifiers
              repeated-field-identifiers)
-          (format-id ctx "~a-~a" kebab-name field-name))))
+          (format-id ctx "~a-~a" kebab-name kebab-field-name))))
     (format-id ctx "parse-~a" kebab-name)
     (format-id ctx "write-~a" kebab-name)
     (format-id ctx "freeze-~a" kebab-name)))
 
-;; TODO make this do CamelCase and snake_case to hypen-case.
 (define (message-descriptor->builder-identifiers ctx md)
   (define name (message-descriptor-name md))
-  (define short-name (string-replace name #rx".*\\." ""))
+  (define kebab-name (camel-case->kebab-case (string-replace name #rx".*\\." "")))
   (builder-identifiers
-    (format-id ctx "~a-builder" short-name)
+    (format-id ctx "~a-builder" kebab-name)
     (for/hash ([(field-number fd) (message-descriptor-fields md)])
       (match-define (field-descriptor multiplicity type field-name) fd)
+      (define kebab-field-name (snake-case->kebab-case field-name))
       (define (format fmt . args)
         (format-id ctx fmt args))
 
@@ -64,9 +68,9 @@
         ((case multiplicity
            [(optional) make-builder-singular-field-identifiers]
            [(repeated) make-builder-repeated-field-identifiers])
-         ctx short-name field-name)))
-    (format-id ctx "parse-~a-builder" short-name)
-    (format-id ctx "write-~a-builder" short-name)
+         ctx kebab-name kebab-field-name)))
+    (format-id ctx "parse-~a-builder" kebab-name)
+    (format-id ctx "write-~a-builder" kebab-name)
     #f))
 
 
@@ -101,30 +105,3 @@
     (format-id ctx "~a-list" name)
     (format-id ctx "~a->number" name)
     (format-id ctx "number->~a" name)))
-
-
-;; Names for:
-;; message Foo {
-;;  optional Bar a = 1;
-;;  repeated Bar b = 2;
-;; }
-;;
-;; make-foo : Keyworded function
-;; make-foo-builder : Keyworded function
-;;
-;; foo-a ; foo? -> bar?
-;; foo-b ; foo? -> (listof bar?)
-;; foo-b ; foo? natural? -> bar?
-;; foo-has-a? : foo? -> boolean?
-;; foo-b-size : foo? -> natural?
-;;
-;; foo-builder-a ; foo-builder? -> bar?
-;; foo-builder-a-builder ; foo-builder? -> bar-builder?
-;; foo-builder-b ; foo-builder? -> (listof bar?)
-;; foo-builder-b ; foo-builder? natural -> bar?
-;; foo-builder-b-builder ; foo-builder? -> bar-builder?
-;; foo-builder-b-builder ; foo-builder? natural? -> bar-builder?
-;; set-foo-builder-a! : foo-builder? (or/c bar? bar-builder?) -> void?
-;; set-foo-builder-b! : foo-builder? natural? (or/c bar? bar-builder?) -> void?
-;; foo-builder-add-b! : foo-builder? (or/c bar? bar-builder?) -> bar-builder?
-;; foo-builder-add-b! : foo-builder? (or/c bar? bar-builder?) natural? -> bar-builder?
