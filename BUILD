@@ -27,6 +27,8 @@ racket_library(
     ":protobuf",
     "//tests/test-data:foo_proto_rkt",
     "//tests/test-data:foo2_proto_rkt",
+    "//tests/test-data:multi_file_proto_rkt",
+    "//tests/test-data:multi_file_b_proto_rkt",
   ],
 )
 
@@ -116,6 +118,21 @@ racket_library(
     name = "proto-serializer",
     srcs = ["proto-serializer.rkt"],
 )
+
+racket_library(
+    name = "proto-racket-compiler",
+    srcs = ["proto-racket-compiler.rkt"],
+    deps = [
+        ":protobuf"
+    ],
+)
+
+racket_binary(
+    name = "proto-racket-compiler_bin",
+    main_module = "proto-racket-compiler.rkt",
+    deps = ["proto-racket-compiler"],
+)
+
 
 # racket_library(
 #   name = "tests",

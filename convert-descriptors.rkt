@@ -6,15 +6,13 @@
   "message-descriptor.rkt"
   "proto-descriptors.rkt")
 
-(provide convert-descriptors)
-
-(define (convert-descriptors file-descriptor-set)
-  (flatten (map convert-file-descriptor (FileDescriptorSet-file file-descriptor-set))))
+(provide convert-file-descriptor)
 
 (define (convert-file-descriptor file-descriptor)
-  (map
-    (convert-message-type (string-append "." (FileDescriptorProto-package file-descriptor)))
-    (FileDescriptorProto-message_type file-descriptor)))
+  (flatten
+    (map
+      (convert-message-type (string-append "." (FileDescriptorProto-package file-descriptor)))
+      (FileDescriptorProto-message_type file-descriptor))))
 
 
 (define ((convert-enum-type container-name) enum-type)

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package com.endobson;
+
+import "tests/test-data/multi_file1.proto";
+import "tests/test-data/multi_file2.proto";
+import "tests/test-data/multi_file_b2.proto";
+
+message MF_B1 {
+  int32 v = 1;
+  MF1 x = 2;
+  MF2 y = 3;
+  MF_B2 z = 4;
+}

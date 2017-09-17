@@ -1,0 +1,6 @@
+syntax = "proto3";
+package com.endobson;
+
+message MF1 {
+  int32 v = 1;
+}

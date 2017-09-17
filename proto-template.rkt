@@ -27,9 +27,15 @@
     (call-with-input-file "{DESCRIPTOR}"
       (lambda (port)
         #`'#,(port->bytes port))))
+  (define source-path "{SOURCE_PATH}")
   (define raw-descriptor (gen-raw-descriptor))
   (define file-descriptor-set (parse-FileDescriptorSet (open-input-bytes raw-descriptor)))
-  (define defined-descriptors (convert-descriptors file-descriptor-set))
+  (define file-descriptor
+    (or
+      (findf (lambda (desc) (equal? source-path (FileDescriptorProto-name desc)))
+             (FileDescriptorSet-file file-descriptor-set))
+      (error 'proto-template "No descriptor for ~a." source-path)))
+  (define defined-descriptors (convert-file-descriptor file-descriptor))
   (define defined-type-ids (make-type-identifier-dict #'here defined-descriptors)))
 
 (module* type-ids #f
@@ -40,22 +46,20 @@
   (syntax-case stx ()
     [(_ imported-ids)
      (let ()
-       (define-values (idss requiress)
-         (for/lists (idss requiress) ([file (in-list (FileDescriptorSet-file file-descriptor-set))])
-           (for/lists (ids requires) ([dependency (in-list (FileDescriptorProto-dependency file))])
-             (define lib-name
-               (string-append
-                 "protogen/"
-                 (substring dependency 0 (- (string-length dependency) 6))
-                 "-proto"))
-             (define id (generate-temporary 'type-id))
-             (values
-               id
-               #`(require 
-                   #,(string->symbol lib-name)
-                   (only-in (submod #,(string->symbol lib-name) type-ids) [type-ids #,id]))))))
-       (define ids (append* idss))
-       (define requires (append* requiress))
+       (define-values (ids requires)
+         (for/lists (ids requires) ([dependency (in-list (FileDescriptorProto-dependency
+                                                           file-descriptor))])
+           (define lib-name
+             (string-append
+               "protogen/"
+               (substring dependency 0 (- (string-length dependency) 6))
+               "-proto"))
+           (define id (generate-temporary 'type-id))
+           (values
+             id
+             #`(require 
+                 #,(string->symbol lib-name)
+                 (only-in (submod #,(string->symbol lib-name) type-ids) [type-ids #,id])))))
        #`(begin #,@requires 
                 (define-for-syntax imported-ids (hash-union defined-type-ids #,@ids))))]))
 (gen-requires imported-ids)
