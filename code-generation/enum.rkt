@@ -31,9 +31,11 @@
         (case enum
           #,@(for/list ([enum-value-descriptor (enum-descriptor-values desc)])
                #`[(#,(string->symbol (enum-value-descriptor-name enum-value-descriptor)))
-                  '#,(enum-value-descriptor-value enum-value-descriptor)])))
+                  '#,(enum-value-descriptor-value enum-value-descriptor)])
+          [else (error 'enum->number "Unknown input: ~a" enum)]))
       (define (number->enum number)
         (case number
           #,@(for/list ([enum-value-descriptor (enum-descriptor-values desc)])
                #`[(#,(enum-value-descriptor-value enum-value-descriptor))
-                  '#,(string->symbol (enum-value-descriptor-name enum-value-descriptor))])))))
+                  '#,(string->symbol (enum-value-descriptor-name enum-value-descriptor))])
+          [else (error 'number->enum "Unknown input: ~a" number)]))))
