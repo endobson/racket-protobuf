@@ -14,7 +14,8 @@
   racket/list
   racket/match
   racket/function
-  racket/syntax)
+  racket/syntax
+  racket/string)
 
 (provide
   generate-message-structure
@@ -82,7 +83,7 @@
               (define field-num (hash-ref reverse-indices i))
               (define fd (hash-ref fields field-num))
               (list
-                (string->keyword (field-descriptor-name fd))
+                (string->keyword (snake-case->kebab-case (field-descriptor-name fd)))
                 #`[#,arg
                    #,(case (field-descriptor-multiplicity fd)
                        [(optional) (default-value enum-ids (field-descriptor-type fd))]
@@ -215,3 +216,8 @@
     [(list 'enum (? string? enum-type))
      #`(varint-size (#,(enum-identifiers-enum->number (hash-ref enum-ids enum-type)) #,arg-stx))]))
 
+;; TODO(endobson) don't duplicate this
+(define (snake-case->kebab-case s)
+  (unless (regexp-match? #rx"([a-z0-9]+)(_[a-z0-9]+)*" s)
+    (error 'snake-case->kebab-case "Input is not snake_case: ~s" s))
+  (string-join (string-split s "_") "-"))

@@ -29,8 +29,8 @@
 
 (define example3
   (make-bar
-    #:string_opt "foo"
-    #:string_repeated (list "1" "2")))
+    #:string-opt "foo"
+    #:string-repeated (list "1" "2")))
 
 (assert-equal?
   (call-with-output-bytes
