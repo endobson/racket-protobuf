@@ -36,7 +36,15 @@ racket_library(
   name = "structure",
   srcs = ["structure.rkt"],
   deps = [
+    ":template-code",
     "//:message-descriptor",
     "//:message-identifiers",
+    "//:varint",
   ],
 )
+
+racket_library(
+    name = "template-code",
+    srcs = ["template-code.rkt"],
+)
+

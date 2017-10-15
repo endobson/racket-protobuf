@@ -117,6 +117,10 @@ racket_binary(
     deps = ["proto-racket-compiler"],
 )
 
+racket_library(
+    name = "varint",
+    srcs = ["varint.rkt"],
+)
 
 # racket_library(
 #   name = "tests",

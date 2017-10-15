@@ -4,10 +4,13 @@
   (for-template
     racket/function
     racket/base
-    racket/list)
+    racket/list
+    "template-code.rkt"
+    "../varint.rkt")
 
   "../message-identifiers.rkt"
   "../message-descriptor.rkt"
+  "../varint.rkt"
   racket/list
   racket/match
   racket/function
@@ -39,13 +42,17 @@
       (values v k)))
 
 
+  ;; This is the number of proto fields
   (define num-fields (hash-count fields))
+  ;; The super struct 'protobuf-base' has the following fields:
+  ;; * byte-size: the size of the serialized proto in bytes.
   #`(begin
       (define-values (type-descriptor raw-constructor predicate accessor mutator)
-        (make-struct-type '#,(string->symbol name) #f #,num-fields 0 #f empty #f #f
+        (make-struct-type '#,(string->symbol name) struct:protobuf-base #,num-fields 0 #f empty #f #f
                           '#,(build-list num-fields identity)))
       (define (constructor)
         (raw-constructor
+          0 ;; byte-size
           #,@(for/list ([i num-fields])
                (define fd (hash-ref fields (hash-ref reverse-indices i)))
                (case (field-descriptor-multiplicity fd)
@@ -53,7 +60,31 @@
                  [(repeated) #'null]))))
 
       (define (freezer builder)
-        (raw-constructor
+        #,(let ([args (generate-temporaries (build-list num-fields identity))])
+            #`(define (size-constructor #,@args)
+                (let ([size 0])
+                  #,(for/fold ([body #`(raw-constructor size #,@args)])
+                               ([i (in-range num-fields)]
+                                [arg (in-list args)])
+                       (define field-num (hash-ref reverse-indices i))
+                       (define fd (hash-ref fields field-num))
+                       (define new-size-stx
+                         (case (field-descriptor-multiplicity fd)
+                           [(optional)
+                            #`(if (equal? 
+                                    #,arg
+                                    #,(default-value enum-ids (field-descriptor-type fd)))
+                                  0
+                                  (+ #,(tag-size field-num) 
+                                     #,(value-size arg enum-ids (field-descriptor-type fd))))]
+                           [(repeated)
+                            #`(for/sum ([sub (in-list #,arg)])
+                                (+ #,(tag-size field-num) 
+                                   #,(value-size #`sub enum-ids (field-descriptor-type fd))))]))
+                      #`(let ([size (+ size #,new-size-stx)]) #,body)))))
+
+
+        (size-constructor
           #,@(for/list ([i num-fields])
                (define fd (hash-ref fields (hash-ref reverse-indices i)))
                (define builder-field-identifiers (hash-ref (builder-identifiers-fields builder-ids)
@@ -158,3 +189,21 @@
   (match type
     [(list 'message _) #t]
     [_ #f]))
+
+(define (tag-size tag)
+  (varint-size (arithmetic-shift tag 3)))
+
+(define (value-size arg-stx enum-ids type)
+  (match type
+    ['int32 #`(varint-size #,arg-stx)]
+    ['string #`(let ([len (string-utf-8-length #,arg-stx)])
+                 (+ (varint-size len) len))]
+    ['bytes #`(let ([len (bytes-length #,arg-stx)])
+                 (+ (varint-size len) len))]
+    ['boolean 1]
+    [(list 'message (? string? subtype))
+     #`(let ([len (protobuf-base-byte-size #,arg-stx)])
+         (+ (varint-size len) len))]
+    [(list 'enum (? string? enum-type))
+     #`(varint-size (#,(enum-identifiers-enum->number (hash-ref enum-ids enum-type)) #,arg-stx))]))
+
