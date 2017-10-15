@@ -13,8 +13,8 @@
 (define (write-varint number port)
   (cond
     [(< number 128)
-     (write-byte (+ 128 number) port)]
+     (write-byte number port)]
     [else
      (define-values (q r) (quotient/remainder number 128))
-     (write-byte r port)
+     (write-byte (+ 128 r) port)
      (write-varint port q)]))
