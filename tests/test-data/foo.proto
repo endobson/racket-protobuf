@@ -4,6 +4,8 @@ package com.endobson;
 message Bar {
   int32 v = 1;
   repeated Baz baz = 2;
+  string string_opt = 3;
+  repeated string string_repeated = 4;
 
   message Baz2 {
     Bar bar = 1;

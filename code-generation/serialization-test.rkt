@@ -27,4 +27,20 @@
       (write-foo2 example2 p)))
   (bytes 10 0))
 
+(define example3
+  (make-bar
+    #:string_opt "foo"
+    #:string_repeated (list "1" "2")))
+
+(assert-equal?
+  (call-with-output-bytes
+    (lambda (p)
+      (write-bar example3 p)))
+  (bytes-append
+    (bytes 26 3)
+    #"foo"
+    (bytes 34 1)
+    #"1"
+    (bytes 34 1)
+    #"2"))
 

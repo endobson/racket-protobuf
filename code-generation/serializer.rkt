@@ -50,7 +50,7 @@
             ['string
              #`(unless (equal? val "")
                  #,(write-tag)
-                 (define bytes (string->bytes/utf-8 string))
+                 (define bytes (string->bytes/utf-8 val))
                  (write-varint (bytes-length bytes) port)
                  (write-bytes bytes port))]
             ['bytes
@@ -87,7 +87,7 @@
             ['string
              #`(begin
                  #,(write-tag)
-                 (define bytes (string->bytes/utf-8 string))
+                 (define bytes (string->bytes/utf-8 val))
                  (write-varint (bytes-length bytes) port)
                  (write-bytes bytes port))]
             ['bytes
