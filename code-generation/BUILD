@@ -64,6 +64,7 @@ racket_library(
     ":template-code",
     "//:message-descriptor",
     "//:message-identifiers",
+    "//:runtime-message-descriptor",
     "//:varint",
   ],
 )

@@ -6,6 +6,7 @@
     racket/base
     racket/list
     "template-code.rkt"
+    "../runtime-message-descriptor.rkt"
     "../varint.rkt")
 
   "../message-identifiers.rkt"
@@ -27,10 +28,12 @@
   (define ids (proto-identifiers-message (hash-ref message-ids name)))
   (define builder-ids (proto-identifiers-builder (hash-ref message-ids name)))
   (define/with-syntax constructor (message-identifiers-constructor ids))
-  (define/with-syntax size-constructor (generate-temporary (message-identifiers-constructor ids)))
   (define/with-syntax freezer (message-identifiers-freezer ids))
-  (define/with-syntax (type-descriptor raw-constructor predicate accessor mutator)
-    (generate-temporaries '(type-descriptor raw-constructor predicate accessor mutator)))
+  (define/with-syntax serializer (message-identifiers-serializer ids))
+  (define/with-syntax parser (message-identifiers-parser ids))
+  (define/with-syntax descriptor (message-identifiers-descriptor ids))
+  (define/with-syntax (type-descriptor raw-constructor size-constructor predicate accessor mutator)
+    (generate-temporaries '(type-descriptor raw-constructor size-constructor predicate accessor mutator)))
 
   ;; Hash of field-number to index of the field in the struct.
   (define indices
@@ -64,15 +67,15 @@
                      (define new-size-stx
                        (case (field-descriptor-multiplicity fd)
                          [(optional)
-                          #`(if (equal? 
+                          #`(if (equal?
                                   #,arg
                                   #,(default-value enum-ids (field-descriptor-type fd)))
                                 0
-                                (+ #,(tag-size field-num) 
+                                (+ #,(tag-size field-num)
                                    #,(value-size arg enum-ids (field-descriptor-type fd))))]
                          [(repeated)
                           #`(for/sum ([sub (in-list #,arg)])
-                              (+ #,(tag-size field-num) 
+                              (+ #,(tag-size field-num)
                                  #,(value-size #`sub enum-ids (field-descriptor-type fd))))]))
                     #`(let ([size (+ size #,new-size-stx)]) #,body)))))
 
@@ -126,7 +129,10 @@
                   (make-struct-field-accessor accessor field-index 'field-name))]
              [(repeated-field-identifiers acc)
               #`(define #,acc
-                  (make-struct-field-accessor accessor field-index 'field-name))]))))
+                  (make-struct-field-accessor accessor field-index 'field-name))]))
+
+      (define descriptor
+        (runtime-message-descriptor predicate parser serializer))))
 
 (define (generate-builder-structure message-ids enum-ids desc)
   (match-define (message-descriptor name fields) desc)

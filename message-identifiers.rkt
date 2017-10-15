@@ -13,7 +13,7 @@
 
 (struct proto-identifiers (message builder))
 
-(struct message-identifiers (constructor fields parser serializer freezer) #:transparent)
+(struct message-identifiers (constructor fields parser serializer freezer descriptor) #:transparent)
 (struct singular-field-identifiers (accessor) #:transparent)
 (struct repeated-field-identifiers (accessor) #:transparent)
 

@@ -114,6 +114,12 @@ racket_binary(
 )
 
 racket_library(
+    name = "runtime-message-descriptor",
+    srcs = ["runtime-message-descriptor.rkt"],
+)
+
+
+racket_library(
     name = "varint",
     srcs = ["varint.rkt"],
 )

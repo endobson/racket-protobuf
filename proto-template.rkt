@@ -69,14 +69,15 @@
     (match ids
       [(proto-identifiers message builder) 
        (proto-identifiers (introduce message) (introduce builder))]
-      [(message-identifiers constructor fields parser serializer freezer)
+      [(message-identifiers constructor fields parser serializer freezer descriptor)
        (message-identifiers
          (syntax-local-introduce constructor)
          (for/hash ([(k v) (in-hash fields)])
            (values k (introduce v)))
          (syntax-local-introduce parser)
          (syntax-local-introduce serializer)
-         (syntax-local-introduce freezer))]
+         (syntax-local-introduce freezer)
+         (syntax-local-introduce descriptor))]
       [(singular-field-identifiers accessor)
        (singular-field-identifiers (syntax-local-introduce accessor))]
       [(repeated-field-identifiers accessor)

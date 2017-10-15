@@ -30,10 +30,11 @@
   #`(begin
       #,@(for/list ([md (in-list mds)])
            #`(begin
-               #,(generate-message-structure ids ids md)
-               #,(generate-builder-structure ids ids md)
                #,(generate-parser ids ids md)
-               #,(generate-serializer ids ids md)))
+               #,(generate-serializer ids ids md)
+               ;; These need to come later so that the descriptor can use the parser and serializer
+               #,(generate-message-structure ids ids md)
+               #,(generate-builder-structure ids ids md)))
       #,@(for/list ([ed (in-list eds)])
            (generate-enum (hash-ref ids (enum-descriptor-name ed)) ed))))
 

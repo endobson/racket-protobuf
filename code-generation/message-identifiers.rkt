@@ -50,7 +50,8 @@
           (format-id ctx "~a-~a" kebab-name kebab-field-name))))
     (format-id ctx "parse-~a" kebab-name)
     (format-id ctx "write-~a" kebab-name)
-    (format-id ctx "freeze-~a" kebab-name)))
+    (format-id ctx "freeze-~a" kebab-name)
+    (format-id ctx "~a:descriptor" kebab-name)))
 
 (define (message-descriptor->builder-identifiers ctx md)
   (define name (message-descriptor-name md))
