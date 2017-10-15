@@ -48,6 +48,7 @@ racket_library(
         "//code-generation:enum",
         "//code-generation:message-identifiers",
         "//code-generation:parser",
+        "//code-generation:serializer",
         "//code-generation:structure",
     ],
 )
@@ -96,11 +97,6 @@ racket_library(
 racket_library(
     name = "proto-reader",
     srcs = ["proto-reader.rkt"],
-)
-
-racket_library(
-    name = "proto-serializer",
-    srcs = ["proto-serializer.rkt"],
 )
 
 racket_library(

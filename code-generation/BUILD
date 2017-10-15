@@ -48,3 +48,14 @@ racket_library(
     srcs = ["template-code.rkt"],
 )
 
+racket_library(
+  name = "serializer",
+  srcs = ["serializer.rkt"],
+  deps = [
+    ":template-code",
+    "//:message-descriptor",
+    "//:message-identifiers",
+    "//:varint",
+  ],
+)
+

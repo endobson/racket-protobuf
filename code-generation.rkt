@@ -5,6 +5,7 @@
   racket/contract
 
   "code-generation/parser.rkt"
+  "code-generation/serializer.rkt"
   "code-generation/structure.rkt"
   "code-generation/enum.rkt"
   "code-generation/message-identifiers.rkt"
@@ -31,7 +32,8 @@
            #`(begin
                #,(generate-message-structure ids ids md)
                #,(generate-builder-structure ids ids md)
-               #,(generate-parser ids ids md)))
+               #,(generate-parser ids ids md)
+               #,(generate-serializer ids ids md)))
       #,@(for/list ([ed (in-list eds)])
            (generate-enum (hash-ref ids (enum-descriptor-name ed)) ed))))
 
