@@ -26,6 +26,7 @@
   (define ids (proto-identifiers-message (hash-ref message-ids name)))
   (define builder-ids (proto-identifiers-builder (hash-ref message-ids name)))
   (define/with-syntax constructor (message-identifiers-constructor ids))
+  (define/with-syntax size-constructor (generate-temporary (message-identifiers-constructor ids)))
   (define/with-syntax freezer (message-identifiers-freezer ids))
   (define/with-syntax (type-descriptor raw-constructor predicate accessor mutator)
     (generate-temporaries '(type-descriptor raw-constructor predicate accessor mutator)))
@@ -50,40 +51,47 @@
       (define-values (type-descriptor raw-constructor predicate accessor mutator)
         (make-struct-type '#,(string->symbol name) struct:protobuf-base #,num-fields 0 #f empty #f #f
                           '#,(build-list num-fields identity)))
-      (define (constructor)
-        (raw-constructor
-          0 ;; byte-size
-          #,@(for/list ([i num-fields])
-               (define fd (hash-ref fields (hash-ref reverse-indices i)))
-               (case (field-descriptor-multiplicity fd)
-                 [(optional) (default-value enum-ids (field-descriptor-type fd))]
-                 [(repeated) #'null]))))
+
+      #,(let ([args (generate-temporaries (build-list num-fields identity))])
+          #`(define (size-constructor #,@args)
+              (let ([size 0])
+                #,(for/fold ([body #`(raw-constructor size #,@args)])
+                             ([i (in-range num-fields)]
+                              [arg (in-list args)])
+                     (define field-num (hash-ref reverse-indices i))
+                     (define fd (hash-ref fields field-num))
+                     (define new-size-stx
+                       (case (field-descriptor-multiplicity fd)
+                         [(optional)
+                          #`(if (equal? 
+                                  #,arg
+                                  #,(default-value enum-ids (field-descriptor-type fd)))
+                                0
+                                (+ #,(tag-size field-num) 
+                                   #,(value-size arg enum-ids (field-descriptor-type fd))))]
+                         [(repeated)
+                          #`(for/sum ([sub (in-list #,arg)])
+                              (+ #,(tag-size field-num) 
+                                 #,(value-size #`sub enum-ids (field-descriptor-type fd))))]))
+                    #`(let ([size (+ size #,new-size-stx)]) #,body)))))
+
+      #,(let ([args (generate-temporaries (build-list num-fields identity))])
+          (define keyword-arguments
+            (for/list ([i (in-range num-fields)]
+                       [arg (in-list args)])
+              (define field-num (hash-ref reverse-indices i))
+              (define fd (hash-ref fields field-num))
+              (list
+                (string->keyword (field-descriptor-name fd))
+                #`[#,arg
+                   #,(case (field-descriptor-multiplicity fd)
+                       [(optional) (default-value enum-ids (field-descriptor-type fd))]
+                       [(repeated) #'null])])))
+
+          #`(define (constructor #,@(append* keyword-arguments))
+              (size-constructor #,@args)))
 
       (define (freezer builder)
-        #,(let ([args (generate-temporaries (build-list num-fields identity))])
-            #`(define (size-constructor #,@args)
-                (let ([size 0])
-                  #,(for/fold ([body #`(raw-constructor size #,@args)])
-                               ([i (in-range num-fields)]
-                                [arg (in-list args)])
-                       (define field-num (hash-ref reverse-indices i))
-                       (define fd (hash-ref fields field-num))
-                       (define new-size-stx
-                         (case (field-descriptor-multiplicity fd)
-                           [(optional)
-                            #`(if (equal? 
-                                    #,arg
-                                    #,(default-value enum-ids (field-descriptor-type fd)))
-                                  0
-                                  (+ #,(tag-size field-num) 
-                                     #,(value-size arg enum-ids (field-descriptor-type fd))))]
-                           [(repeated)
-                            #`(for/sum ([sub (in-list #,arg)])
-                                (+ #,(tag-size field-num) 
-                                   #,(value-size #`sub enum-ids (field-descriptor-type fd))))]))
-                      #`(let ([size (+ size #,new-size-stx)]) #,body)))))
-
-
         (size-constructor
           #,@(for/list ([i num-fields])
                (define fd (hash-ref fields (hash-ref reverse-indices i)))

@@ -18,9 +18,8 @@
   #"")
 
 (define example2
-  (let ([builder (foo2-builder)])
-    (set-foo2-builder-bar! builder (bar-builder))
-    (freeze-foo2 builder)))
+  (make-foo2
+    #:bar (make-bar)))
 
 (assert-equal?
   (call-with-output-bytes
