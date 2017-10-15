@@ -71,17 +71,6 @@ racket_library(
 )
 
 racket_library(
-    name = "import-proto",
-    srcs = ["import-proto.rkt"],
-    deps = [
-        ":code-generation",
-        ":convert-descriptors",
-        ":parse-proto-file",
-        ":proto-descriptors",
-    ],
-)
-
-racket_library(
     name = "info",
     srcs = ["info.rkt"],
 )
@@ -94,14 +83,6 @@ racket_library(
 racket_library(
     name = "message-identifiers",
     srcs = ["message-identifiers.rkt"],
-)
-
-racket_library(
-    name = "parse-proto-file",
-    srcs = ["parse-proto-file.rkt"],
-    deps = [
-        ":proto-descriptors",
-    ],
 )
 
 racket_library(
