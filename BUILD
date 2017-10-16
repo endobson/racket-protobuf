@@ -18,6 +18,7 @@ racket_collection(
         ":code-generation",
         ":convert-descriptors",
         ":proto-descriptors",
+        ":runtime-message-descriptor",
     ],
 )
 
