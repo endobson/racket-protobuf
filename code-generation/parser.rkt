@@ -42,7 +42,7 @@
      ;; TODO make this cap in 32 bit range
      ['int32 #`(mutator current-builder (read-proto-varint port))]
      ;; TODO make this work
-     ['boolean #`(error 'nyi)]
+     ['boolean #`(error 'nyi-boolean-optional-field)]
      [(list 'enum enum-type)
        (define sub-ids (hash-ref enum-ids enum-type))
       #`(mutator current-builder
@@ -78,9 +78,9 @@
            ;; TODO make this cap in 32 bit range
            ['int32 #'(read-proto-varint port)]
            ;; TODO make this work
-           ['boolean #`(error 'nyi)]
+           ['boolean #`(error 'nyi-boolean-repeated-field)]
            ;; TODO make this work
-           [(list 'enum enum-type) #`(error 'nyi)]
+           [(list 'enum enum-type) #`(error 'nyi-enum-repeated-field)]
            [(list 'message message-type)
              (define sub-ids (hash-ref proto-ids message-type))
              (define/with-syntax sub-constructor
@@ -123,7 +123,7 @@
                     [(length-delimited)
                      (define len (read-proto-varint port))
                      (read-proto-bytes port len)]
-                    [else (error 'nyi)])])
+                    [else (error 'nyi-unknown-fields "Type: ~a" wire-type)])])
               (loop)))
           current-builder)
 
