@@ -31,8 +31,7 @@ racket_library(
     "//tests/test-data:foo2_proto_rkt",
     "//tests/test-data:multi_file_proto_rkt",
     "//tests/test-data:multi_file_b_proto_rkt",
-    ":well_known_types_racket",
-    ":build_event_service_racket",
+    ":any_racket_proto",
   ],
 )
 
@@ -134,12 +133,7 @@ racket_library(
 # )
 
 racket_proto_library(
-  name = "build_event_service_racket",
-  deps = ["@googleapis//:build_event_service"],
-)
-
-racket_proto_library(
-  name = "well_known_types_racket",
-  deps = ["@com_google_protobuf//:well_known_types_protos"]
+   name = "any_racket_proto",
+   deps = ["@com_google_protobuf//:any_proto"],
 )
 

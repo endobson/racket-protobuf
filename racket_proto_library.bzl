@@ -1,11 +1,19 @@
 load("@minimal_racket//:racket.bzl", "racket_compile", "RacketInfo")
 
 def _racket_proto_library_aspect_impl(target, ctx):
-  dep_zos = ctx.attr._proto_collection[RacketInfo].transitive_zos
-  dep_links = ctx.attr._proto_collection[RacketInfo].transitive_links
-  for dep in ctx.rule.attr.deps:
-    dep_zos += dep[RacketInfo].transitive_zos
-    dep_links += dep[RacketInfo].transitive_links
+  dep_transitive_zos = depset(
+    transitive = [dep[RacketInfo].transitive_zos for dep in ctx.rule.attr.deps]
+  )
+  dep_transitive_links = depset(
+    transitive = [dep[RacketInfo].transitive_links for dep in ctx.rule.attr.deps]
+  )
+
+  dep_zos = depset(
+    transitive = [dep_transitive_zos, ctx.attr._proto_collection[RacketInfo].transitive_zos]
+  )
+  dep_links = depset(
+    transitive = [dep_transitive_links, ctx.attr._proto_collection[RacketInfo].transitive_links]
+  )
 
   rkt_files = []
   zo_files = []
@@ -19,7 +27,7 @@ def _racket_proto_library_aspect_impl(target, ctx):
   )
 
 
-  for proto_file in target.proto.direct_sources:
+  for proto_file in target[ProtoInfo].direct_sources:
     basename = proto_file.basename[:-len(".proto")]
     rkt_file = ctx.actions.declare_file(
       basename + "-proto.rkt",
@@ -39,7 +47,7 @@ def _racket_proto_library_aspect_impl(target, ctx):
       template = ctx.file._template,
       output = rkt_file,
       substitutions = {
-        "{DESCRIPTOR}": target.proto.direct_descriptor_set.path,
+        "{DESCRIPTOR}": target[ProtoInfo].direct_descriptor_set.path,
         "{SOURCE_PATH}": proto_file_local_path
       }
     )
@@ -47,13 +55,13 @@ def _racket_proto_library_aspect_impl(target, ctx):
     rkt_files.append(rkt_file)
     zo_files.append(zo_file)
  
-  transitive_links = dep_links + [link_file]
+  transitive_links = depset(direct = [link_file], transitive = [dep_links])
 
   arguments = []
   arguments += ["--links", 
                 "(" + " ".join(['"%s"' % link_file.path for link_file
                                 in transitive_links.to_list()]) + ")"]
-  arguments += ["--file_descriptor", target.proto.direct_descriptor_set.path]
+  arguments += ["--file_descriptor", target[ProtoInfo].direct_descriptor_set.path]
   arguments += ["--bin_dir", ctx.bin_dir.path + "/" + ctx.label.workspace_root]
   arguments += ["--output_dir",
                 ctx.bin_dir.path + "/" +
@@ -64,14 +72,16 @@ def _racket_proto_library_aspect_impl(target, ctx):
   ctx.actions.run(
     executable = ctx.executable._proto_racket_compiler,
     arguments = arguments,
-    inputs = depset([target.proto.direct_descriptor_set] + rkt_files) + transitive_links +
-             dep_zos,
+    inputs = depset(
+      direct = rkt_files + [target[ProtoInfo].direct_descriptor_set],
+      transitive = [transitive_links, dep_zos],
+    ),
     outputs = zo_files,
   )
 
   return [
     RacketInfo(
-      transitive_zos = dep_zos + zo_files,
+      transitive_zos = depset(direct = zo_files, transitive = [dep_zos]),
       transitive_links = transitive_links,
     )
   ]
@@ -81,12 +91,11 @@ racket_proto_library_aspect = aspect(
   attrs = {
     "_template": attr.label(
       default="//:proto-template.rkt",
-      allow_files=True,
-      single_file=True,
+      allow_single_file=True,
     ),
     "_racket_bin": attr.label(
       default="@minimal_racket//osx/v6.10:bin/racket",
-      allow_files=True,
+      allow_single_file=True,
       executable=True,
       cfg="host",
     ),
@@ -112,11 +121,8 @@ racket_proto_library_aspect = aspect(
 )
 
 def _racket_proto_library_impl(ctx):
-  zos = depset()
-  links = depset()
-  for dep in ctx.attr.deps:
-    zos += dep[RacketInfo].transitive_zos
-    links += dep[RacketInfo].transitive_links
+  zos = depset(transitive = [dep[RacketInfo].transitive_zos for dep in ctx.attr.deps])
+  links = depset(transitive = [dep[RacketInfo].transitive_links for dep in ctx.attr.deps])
 
   return [
     RacketInfo(
